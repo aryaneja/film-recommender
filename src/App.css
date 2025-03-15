@@ -1,8 +1,9 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem; /* Keep the padding */
   text-align: center;
+  width: 100%; /* Add this to allow the width to be flexible */
 }
 
 .logo {
@@ -39,4 +40,61 @@
 
 .read-the-docs {
   color: #888;
+}
+.trending-films-header {
+  display: flex; /* Keep the existing properties */
+  align-items: center; /* Keep the existing properties */
+  justify-content: space-between; /* Keep the existing properties */
+  flex-wrap: wrap; /* Keep the existing properties */
+  margin-bottom: 1rem; /*Add margin-bottom*/
+}
+
+.filter-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem; /* Add margin-bottom */
+  overflow-x: auto; /* Make the container scrollable */
+  flex-wrap: wrap; /* Keep the existing properties */
+  justify-content: center; /* Keep the existing properties */
+}
+
+.content-container {
+  /* add content container */
+  overflow-x: auto; /* Make the container scrollable */
+}
+
+.filter-container select {
+  padding: 0.3rem; /* Change this to rem to make it relative */
+
+  font-size: 0.8rem;
+}
+
+.content-container{ /*add content container*/
+  overflow-x: auto; /*Make the container scrollable*/
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+  #root {
+    padding: 1rem; /* Reduce padding on smaller screens */
+  }
+}
+
+/* Media query for mobile */
+@media (max-width: 480px) {
+  #root {
+    padding: 0.5rem; /* Even less padding on mobile */
+  }
+  .logo {
+    height: 4em; /* Smaller logo on mobile */
+    padding: 0.5em;
+  }
+  .card {
+    padding: 1rem; /* Less padding on cards */
+  }
+  .filter-container select {
+    font-size: 0.7rem;
+    padding: 0.2rem;
+    width: 100%;
+  }
 }

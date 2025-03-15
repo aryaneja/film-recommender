@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const App = () => {
     const [film, setFilm] = useState('');
@@ -8,15 +8,18 @@ const App = () => {
         return storedFilms ? JSON.parse(storedFilms) : [];
     });
     const [trendingFilms, setTrendingFilms] = useState([]);
-    const [filmRecommendations, setFilmRecommendations] = useState([]);
+    const [genres, setGenres] = useState([]);
+    const [selectedGenre, setSelectedGenre] = useState(null);
+    const [selectedYear, setSelectedYear] = useState(null);
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
-
+    const currentYear = new Date().getFullYear();
+    
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
     }, [userFilmList]);
-
+    
     const getVoteColor = (voteAverage) => {
         if (voteAverage > 5) {
             const green = Math.round(((voteAverage - 5) / 5) * 255);
@@ -51,7 +54,7 @@ const App = () => {
             return 0;
         });
     };
-
+    
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (film.trim()) {
@@ -60,29 +63,65 @@ const App = () => {
         }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [film]);
-
+    
     useEffect(() => {
-        const fetchTrendingFilms = async () => {
+        const fetchGenres = async () => {
             try {
-                const response = await fetch('https://api.themoviedb.org/3/trending/movie/day?language=en-US', {
-                    method: 'GET',
-                    headers: {
-                        accept: 'application/json',
-                        Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                    },
-                });
+                const response = await fetch(
+                    'https://api.themoviedb.org/3/genre/movie/list?language=en',
+                    {
+                        method: 'GET',
+                        headers: {
+                            accept: 'application/json',
+                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+                        },
+                    }
+                );
                 if (!response.ok) {
-                    throw new Error('Failed to fetch trending films');
+                    throw new Error('Failed to fetch genres');
                 }
                 const data = await response.json();
-                setTrendingFilms(data.results.slice(0, 10));
+                setGenres(data.genres);
             } catch (error) {
-                console.error('Error fetching trending films:', error);
+                console.error('Error fetching genres:', error);
             }
         };
 
-        fetchTrendingFilms();
-    }, []);
+        fetchGenres();
+    },[]);
+
+    const fetchTrendingFilms = async (genre, year) => {
+        setLoading(true);
+        try {
+            let url = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&language=en-US';
+            if (genre) {
+                url += `&with_genres=${genre}`;
+            }
+            if (year) {
+                url += `&primary_release_year=${year}`;
+            }
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch trending films');
+            }
+            const data = await response.json();
+            setTrendingFilms(data.results.slice(0, 10));
+        } catch (error) {
+            console.error('Error fetching trending films:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTrendingFilms(selectedGenre, selectedYear);
+    }, [selectedGenre, selectedYear]);
 
     const addFilmToUserList = (newFilm) => {
         setUserFilmList(currentList => {
@@ -95,7 +134,7 @@ const App = () => {
         let director;
         let studio;
         try {
-            const response = await fetch(`https://api.themoviedb.org/3/movie/${filmId}?language=en-US`, {
+            const response = await fetch(`https://api.themoviedb.org/3/movie/${filmId}?language=en-US&append_to_response=credits`, {
                     method: 'GET',
                     headers: {
                         accept: 'application/json',
@@ -138,10 +177,9 @@ const App = () => {
             setError('Failed to fetch movie details. Please try again.');
             console.error("Error fetching movie details: ", e);
         } finally {
-            setLoading(false);
-        }
+          setLoading(false);
+        }   
      };
-
 
     const addFilm = async () => {
         if (film.trim()) {
@@ -204,10 +242,63 @@ const App = () => {
                     })}
                 </ul>
             )}
-            
+
             {trendingFilms.length > 0 && (
                 <div className="trending-films">
-                    <h2>or choose a trending film</h2>
+                    
+                    <div className="trending-films-header">
+                        <h2>
+                            {`or choose a trending film ${
+                                selectedGenre
+                                    ? `in ${genres.find((g) => g.id === selectedGenre)?.name}`
+                                    : "across all genres"
+                            } ${
+                                selectedYear
+                                    ? `released in ${selectedYear}`
+                                    : "across all years"
+                            }`}
+                        </h2>
+                        <div className="filter-container">
+                            <select
+                                value={selectedGenre ?? ""}
+                                onChange={(e) =>
+                                    setSelectedGenre(
+                                        e.target.value === ""
+                                            ? null
+                                            : parseInt(e.target.value)
+                                    )
+                                }
+                            >
+                                <option value="">All Genres</option>
+                                {genres.map((genre) => (
+                                    <option key={genre.id} value={genre.id}>
+                                        {genre.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                value={selectedYear ?? ""}
+                                onChange={(e) =>
+                                    setSelectedYear(
+                                        e.target.value === ""
+                                            ? null
+                                            : parseInt(e.target.value)
+                                    )
+                                }
+                            >
+                                <option value="">All Years</option>
+                                {Array.from(
+                                    { length: currentYear - 1900 + 1 },
+                                    (_, i) => currentYear - i
+                                ).map((year) => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
                     <div className="trending-films-posters">
                         {trendingFilms.map((item) => (
                             <div key={item.id} className="trending-film-item">
