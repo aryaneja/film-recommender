@@ -17,6 +17,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install Node.js and dependencies
+      uses: actions/setup-node@v4
+      with: node-version: 18
+
+    - name: Install Yarn
+      run: npm install -g yarn
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Build the React app
+      run: yarn build
+
+
     - name: Configure AWS credentials via OIDC
       uses: aws-actions/configure-aws-credentials@v3
       with:
