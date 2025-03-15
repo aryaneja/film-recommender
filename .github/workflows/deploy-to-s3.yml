@@ -31,7 +31,6 @@ jobs:
     - name: Build the React app
       run: yarn build
 
-
     - name: Configure AWS credentials via OIDC
       uses: aws-actions/configure-aws-credentials@v3
       with:
@@ -39,4 +38,4 @@ jobs:
         aws-region: us-east-1
 
     - name: Deploy to S3
-      run: aws s3 sync . s3://film.aryaneja.com --delete
+      run: aws s3 sync build/ s3://film.aryaneja.com --delete
