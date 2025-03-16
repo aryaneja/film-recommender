@@ -151,6 +151,7 @@ h2 {
 
 .trending-films {
   margin: 1rem 0;
+  width: 100%;
 }
 
 .trending-films-header {
@@ -191,11 +192,12 @@ h2 {
 }
 
 .trending-films-posters {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 1rem;
   padding: 0.5rem;
-  overflow-x: auto;
   width: 100%;
+  overflow-x: auto;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
@@ -217,8 +219,7 @@ h2 {
 }
 
 .trending-film-item {
-  flex: 0 0 auto;
-  width: 150px;
+  width: 100%;
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -235,8 +236,8 @@ h2 {
 }
 
 .trending-film-item img {
-  width: 150px;
-  height: 225px;
+  width: 100%;
+  aspect-ratio: 2/3;
   object-fit: contain;
   cursor: pointer;
   display: block;
@@ -357,6 +358,12 @@ td[style*="backgroundColor"] {
   }
 }
 
+@media (max-width: 1200px) {
+  .trending-films-posters {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0.75rem;
@@ -389,13 +396,14 @@ td[style*="backgroundColor"] {
     width: 100%;
   }
   
-  .trending-film-item {
-    width: 120px;
+  .trending-films-posters {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+    padding: 0.4rem;
   }
   
-  .trending-film-item img {
-    width: 120px;
-    height: 180px;
+  .trending-film-item {
+    box-shadow: var(--shadow-sm);
   }
   
   /* Hide less important columns */
@@ -438,23 +446,10 @@ td[style*="backgroundColor"] {
     margin: 0.75rem 0;
   }
   
-  .trending-film-item {
-    width: 100px;
-  }
-  
-  .trending-film-item img {
-    width: 100px;
-    height: 150px;
-  }
-  
-  /* Further reduce columns */
-  td.director,
-  th.director {
-    display: none;
-  }
-  
-  td, th {
-    padding: 0.4rem;
+  .trending-films-posters {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.3rem;
   }
   
   .trending-film-info {
@@ -467,6 +462,16 @@ td[style*="backgroundColor"] {
   
   .trending-film-info span:last-child {
     font-size: 0.7rem;
+  }
+
+  /* Further reduce columns */
+  td.director,
+  th.director {
+    display: none;
+  }
+  
+  td, th {
+    padding: 0.4rem;
   }
 }
 
