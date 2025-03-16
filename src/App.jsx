@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import './App.css';
 
 const App = () => {
     const [film, setFilm] = useState('');
@@ -15,10 +16,16 @@ const App = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const currentYear = new Date().getFullYear();
+    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
     
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
     }, [userFilmList]);
+    
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    }, [theme]);
     
     const getVoteColor = (voteAverage) => {
         if (voteAverage > 5) {
@@ -222,10 +229,26 @@ const App = () => {
         setUserFilmList(updatedFilmList);
     };
 
+    const toggleTheme = () => {
+        setTheme(theme === 'light' ? 'dark' : 'light');
+    };
+
 /* HTML PART */
 
     return (
         <div className="container">
+            <button className="theme-toggle" onClick={toggleTheme}>
+                {theme === 'light' ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 3a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1zm7.071 7.071a1 1 0 0 0-1.414-1.414l-.707.707a1 1 0 0 0 1.414 1.414l.707-.707zM4.929 4.929a1 1 0 0 1 1.414 0l.707.707A1 1 0 1 1 5.636 7.05l-.707-.707a1 1 0 0 1 0-1.414zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm-9 4a1 1 0 1 0 0 2h1a1 1 0 1 0 0-2H3zm17 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1zM6.343 17.657a1 1 0 0 0-1.414 1.414l.707.707a1 1 0 0 0 1.414-1.414l-.707-.707zM12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1zm5.657-1.343a1 1 0 0 1 1.414 0l.707.707a1 1 0 0 1-1.414 1.414l-.707-.707a1 1 0 0 1 0-1.414z" />
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z" />
+                    </svg>
+                )}
+                {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+            </button>
             <h1 className="header">the film recommender tool</h1>
             <h2>search for a film</h2>
             <input className="input" placeholder="Enter a film name" value={film} onChange={(e) => setFilm(e.target.value)} />
@@ -319,64 +342,66 @@ const App = () => {
 
             <h2>your film list</h2>
             {error && <div className="error">{error}</div>}
-            <table>
-                <thead>
-                    <tr>
-                        <th onClick={() => requestSort('title')}>Film Title</th>
-                        <th onClick={() => requestSort('release_date')}>Release Date</th>
-                        <th onClick={() => requestSort('popularity')}>Popularity</th>
-                        <th onClick={() => requestSort('vote_average')}>Average Vote</th>
-                        <th onClick={() => requestSort('overview')}>Description</th>
-                        <th onClick={() => requestSort('director')}>Director</th>
-                        <th onClick={() => requestSort('language')}>Language</th>
-                        <th onClick={() => requestSort('studio')}>Studio</th>
-                        <th>Poster </th>
-                        <th>Remove</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {sortedFilms().map((item, index) => (
-                        <tr key={index} className="listItem">
-                            <td>
-                                <a href={`https://www.themoviedb.org/movie/${item.id}`} target="_blank" rel="noopener noreferrer">{item.title}</a>
-                            </td>
-                            <td>{item.release_date}</td>
-                            <td>{item.popularity}</td>
-                            <td style={{ backgroundColor: getVoteColor(item.vote_average), color: "black" }}>
-                                {item.vote_average}
-                            </td>
-                            <td>{item.overview}</td>
-                            <td>{item.director}</td>
-                            <td>{item.language}</td>
-                            <td>{item.studio}</td>
-                            <td>
-                                {item.poster && <img src={item.poster} alt={`${item.title} poster`} />}
-                            </td>
-                            <td>
-                                <button
-                                    onClick={() => removeFilm(item.id)}
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        padding: 0,
-                                    }}
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="red"
-                                        width="24px"
-                                        height="24px"
-                                    >
-                                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                                    </svg>
-                                </button>
-                            </td>
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onClick={() => requestSort('title')}>Film Title</th>
+                            <th onClick={() => requestSort('release_date')}>Release Date</th>
+                            <th onClick={() => requestSort('popularity')} className="popularity">Popularity</th>
+                            <th onClick={() => requestSort('vote_average')}>Average Vote</th>
+                            <th onClick={() => requestSort('overview')} className="description">Description</th>
+                            <th onClick={() => requestSort('director')} className="director">Director</th>
+                            <th onClick={() => requestSort('language')} className="language">Language</th>
+                            <th onClick={() => requestSort('studio')} className="studio">Studio</th>
+                            <th>Poster</th>
+                            <th>Remove</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {sortedFilms().map((item, index) => (
+                            <tr key={index} className="listItem">
+                                <td>
+                                    <a href={`https://www.themoviedb.org/movie/${item.id}`} target="_blank" rel="noopener noreferrer">{item.title}</a>
+                                </td>
+                                <td>{item.release_date}</td>
+                                <td className="popularity">{item.popularity}</td>
+                                <td style={{ backgroundColor: getVoteColor(item.vote_average), color: "black" }}>
+                                    {item.vote_average}
+                                </td>
+                                <td className="description">{item.overview}</td>
+                                <td className="director">{item.director}</td>
+                                <td className="language">{item.language}</td>
+                                <td className="studio">{item.studio}</td>
+                                <td>
+                                    {item.poster && <img src={item.poster} alt={`${item.title} poster`} />}
+                                </td>
+                                <td>
+                                    <button
+                                        onClick={() => removeFilm(item.id)}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            padding: 0,
+                                        }}
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            fill="red"
+                                            width="24px"
+                                            height="24px"
+                                        >
+                                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };

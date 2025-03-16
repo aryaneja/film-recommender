@@ -3,13 +3,12 @@
   line-height: 1.5;
   font-weight: 300;
 
-  /* Dark theme variables */
-  --background-color: #121212; /* Dark background */
-  --text-color: #f0f0f0; /* Light gray text */
-  --accent-color: #FFD700; /* Gold accent */
-  --hover-color: #2e2e2e;
+  /* Light theme variables */
+  --background-color: #ffffff;
+  --text-color: #1e293b;
+  --accent-color: #2563eb;
+  --hover-color: #f1f5f9;
 
-  color-scheme: dark;
   color: var(--text-color);
   background-color: var(--background-color);
 
@@ -18,7 +17,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
-  font-size: 1rem; /* Sets the default font-size to 16px */
+  font-size: 1rem;
 }
 
 a {
@@ -36,7 +35,7 @@ body {
   display: flex;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(to bottom, #1e1e1e, #121212);
+  background-color: var(--background-color);
 }
 h1 {
   font-size: 2rem; /* Using rem for relative sizing */
@@ -80,34 +79,34 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .input-container {
-  margin-bottom: 20px;
-  margin-top: 20px;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
   position: relative;
-  width: 80%;
+  width: 100%;
   max-width: 600px;
-  transition: all 0.3s ease;
 }
 
 input[type="text"] {
   width: 100%;
-  padding: 10px;
-  border: 1px solid var(--text-color);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--accent-color);
   border-radius: 4px;
-  font-size: 1rem;
-  background-color: var(--hover-color);
+  font-size: 0.9rem;
+  background-color: var(--background-color);
   color: var(--text-color);
 }
 
 .recommendations {
   list-style: none;
-  padding: 0px; /* Add some padding around the list items */
-  border: 1px solid #ccc; /* Add a border */
-  background-color: #f8f8f8; /* Light background color */
-  max-height: 200px; /* Set a maximum height */
-  overflow-y: auto; /* Add a scrollbar if the list is too long */
+  padding: 0px;
+  border: 1px solid var(--accent-color);
+  background-color: var(--background-color);
+  max-height: 200px;
+  overflow-y: auto;
   width: fit-content;
   margin-top: 5px;
 }
@@ -115,7 +114,6 @@ input[type="text"] {
 .recommendations li {
   padding: 5px;
   cursor: pointer;
-  border-bottom: 1px solid var(--hover-color);
   background-color: var(--background-color);
   border: 1px solid var(--hover-color);
   border-radius: 4px;
@@ -133,6 +131,7 @@ table {
   border-collapse: collapse;
   margin-top: 20px;
   border: 1px solid var(--hover-color);
+  background-color: var(--background-color);
 }
 
 th,
@@ -140,6 +139,7 @@ td {
   text-align: left;
   padding: 8px;
   border-bottom: 1px solid var(--hover-color);
+  color: var(--text-color);
 }
 
 th {
@@ -147,6 +147,7 @@ th {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 td {
   background-color: var(--background-color);
 }
@@ -189,24 +190,25 @@ img {
 }
 
 .trending-films-posters {
-  margin-top: 10px;
+  margin-top: 0.5rem;
   display: flex;
-  gap: 1px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
 }
 
 .trending-film-item {
   position: relative;
-  width: 100px;
-  height: 150px;
-
+  width: 120px;
+  height: 180px;
   cursor: pointer;
 }
 
 .trending-film-item img {
-  object-fit: contain;
+  object-fit: cover;
   width: 100%;
+  height: 100%;
   display: block;
-  height: 100%
 }
 
 .trending-film-info {
@@ -216,45 +218,39 @@ img {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.75);
   color: var(--text-color);
-  padding: 5px;
-  opacity: 0; /* Hidden by default */
-  transition: opacity 0.3s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.trending-film-item:hover .trending-film-info {
-  opacity: 1; /* Visible on hover */
-  visibility: visible;
-  pointer-events: auto;
-}
-
-@keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity: 1;}
+  padding: 0.5rem;
+  font-size: 0.8rem;
 }
 
 @media (max-width: 768px) {
-  .input-container {
-    width: 95%;
+  .trending-film-item {
+    width: 100px;
+    height: 150px;
+  }
+  
+  input[type="text"] {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
   }
 }
 
-/* Media query for mobile */
 @media (max-width: 480px) {
-  h1 {
-    font-size: 1.5rem; /* Smaller h1 on mobile */
+  .trending-film-item {
+    width: 80px;
+    height: 120px;
   }
-  button {
-    font-size: 0.8rem; /* Smaller button text */
-    padding: 0.4rem 0.8rem; /* Smaller padding */
+  
+  .trending-film-info {
+    padding: 0.25rem;
+    font-size: 0.75rem;
   }
+  
+  input[type="text"] {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.5rem;
+  }
+  
   .input-container {
-    width: 95%;
-  }
-  #root {
-    padding: 0.5rem; /* Even less padding on mobile */
+    margin-bottom: 0.5rem;
   }
 }
