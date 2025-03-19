@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "react-oidc-context";
 import './App.css';
 
 const App = () => {
+    const auth = useAuth();
     const [film, setFilm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [userFilmList, setUserFilmList] = useState(() => {
@@ -100,7 +102,7 @@ const App = () => {
     const fetchTrendingFilms = async (genre, year) => {
         setLoading(true);
         try {
-            let url = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&language=en-US';
+            let url = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&language=en-US&with_original_language=en';
             if (genre) {
                 url += `&with_genres=${genre}`;
             }
@@ -195,7 +197,7 @@ const App = () => {
                 const response = await fetch(
                     `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(
                         film
-                    )}&include_adult=false&language=en-US&page=1`,
+                    )}&include_adult=false&language=en-US&page=1&with_original_language=en`,
                     {
                         method: 'GET',
                         headers: {
@@ -233,22 +235,31 @@ const App = () => {
         setTheme(theme === 'light' ? 'dark' : 'light');
     };
 
-/* HTML PART */
+    const signOutRedirect = () => {
+        const clientId = "56bh1sv1pilqlhjqa6nsqoo7qu";
+        const logoutUri = "https://d84l1y8p4kdic.cloudfront.net";
+        const cognitoDomain = "https://us-east-1tte33hu8l.auth.us-east-1.amazoncognito.com";
+        window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    };
 
     return (
         <div className="container">
-            <button className="theme-toggle" onClick={toggleTheme}>
-                {theme === 'light' ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M12 3a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V4a1 1 0 0 1 1-1zm7.071 7.071a1 1 0 0 0-1.414-1.414l-.707.707a1 1 0 0 0 1.414 1.414l.707-.707zM4.929 4.929a1 1 0 0 1 1.414 0l.707.707A1 1 0 1 1 5.636 7.05l-.707-.707a1 1 0 0 1 0-1.414zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm-9 4a1 1 0 1 0 0 2h1a1 1 0 1 0 0-2H3zm17 0a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2h1zM6.343 17.657a1 1 0 0 0-1.414 1.414l.707.707a1 1 0 0 0 1.414-1.414l-.707-.707zM12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1zm5.657-1.343a1 1 0 0 1 1.414 0l.707.707a1 1 0 0 1-1.414 1.414l-.707-.707a1 1 0 0 1 0-1.414z" />
-                    </svg>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z" />
-                    </svg>
-                )}
-                {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
-            </button>
+            <div className="header-container">
+                <h1 className="header">Film Recommender</h1>
+                <div className="header-controls">
+                    <button className="theme-toggle" onClick={toggleTheme}>
+                        {theme === 'light' ? '🌙' : '☀️'} {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                    </button>
+                    {auth?.isAuthenticated ? (
+                        <div className="user-info">
+                            <span>Welcome, {auth.user?.profile?.email}</span>
+                            <button className="auth-button" onClick={signOutRedirect}>Sign out</button>
+                        </div>
+                    ) : (
+                        <button className="auth-button" onClick={() => auth?.signinRedirect()}>Sign in</button>
+                    )}
+                </div>
+            </div>
             <h1 className="header">the film recommender tool</h1>
             <h2>search for a film</h2>
             <input className="input" placeholder="Enter a film name" value={film} onChange={(e) => setFilm(e.target.value)} />

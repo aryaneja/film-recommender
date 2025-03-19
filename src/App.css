@@ -35,9 +35,8 @@
 
 /* Theme toggle styles */
 .theme-toggle {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+  position: static;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -49,7 +48,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  max-width: 100%;
+  min-width: 120px;
+  justify-content: center;
 }
 
 .theme-toggle:hover {
@@ -98,11 +98,23 @@ body {
   }
 }
 
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: var(--background-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
 .header {
   color: var(--primary-color);
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   font-size: 2rem;
   font-weight: 700;
+  word-wrap: break-word;
 }
 
 h2 {
@@ -376,16 +388,24 @@ td[style*="backgroundColor"] {
     display: inline-flex;
   }
   
-  .header {
-    font-size: 1.75rem;
-  }
-  
-  h2 {
-    font-size: 1.25rem;
-  }
-  
-  .trending-films-header {
+  .header-container {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
     padding: 0.75rem;
+  }
+  
+  .header {
+    font-size: 1.5rem;
+    text-align: left;
+    width: 100%;
+  }
+  
+  .header-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 0.5rem;
   }
   
   .filter-container {
@@ -436,14 +456,12 @@ td[style*="backgroundColor"] {
     height: 1rem;
   }
   
-  .header {
-    font-size: 1.5rem;
-    margin-bottom: 0.75rem;
+  .header-container {
+    padding: 0.5rem;
   }
   
-  h2 {
-    font-size: 1.1rem;
-    margin: 0.75rem 0;
+  .header {
+    font-size: 1.25rem;
   }
   
   .trending-films-posters {
@@ -506,4 +524,95 @@ button {
 button:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
+}
+
+.auth-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: var(--background-light);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info span {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.auth-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  text-align: center;
+}
+
+.auth-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
+  }
+
+  .header-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .theme-toggle {
+    width: auto;
+    min-width: 120px;
+  }
+
+  .auth-button {
+    width: auto;
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .theme-toggle {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    min-width: 110px;
+  }
+
+  .auth-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    min-width: 90px;
+  }
 }
