@@ -19,6 +19,7 @@ const App = () => {
     const [loading, setLoading] = useState(false);
     const currentYear = new Date().getFullYear();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+    const [isLoading, setIsLoading] = useState(true);
     
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -28,6 +29,15 @@ const App = () => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
     }, [theme]);
+    
+    useEffect(() => {
+        // Check if the user is authenticated when the component mounts
+        if (auth.isLoading) {
+            setIsLoading(true);
+        } else {
+            setIsLoading(false);
+        }
+    }, [auth.isLoading]);
     
     const getVoteColor = (voteAverage) => {
         if (voteAverage > 5) {
@@ -235,12 +245,9 @@ const App = () => {
         setTheme(theme === 'light' ? 'dark' : 'light');
     };
 
-    const signOutRedirect = () => {
-        const clientId = "56bh1sv1pilqlhjqa6nsqoo7qu";
-        const logoutUri = "https://d84l1y8p4kdic.cloudfront.net";
-        const cognitoDomain = "https://us-east-1tte33hu8l.auth.us-east-1.amazoncognito.com";
-        window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-    };
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="container">
@@ -250,13 +257,13 @@ const App = () => {
                     <button className="theme-toggle" onClick={toggleTheme}>
                         {theme === 'light' ? '🌙' : '☀️'} {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
                     </button>
-                    {auth?.isAuthenticated ? (
+                    {auth.isAuthenticated ? (
                         <div className="user-info">
                             <span>Welcome, {auth.user?.profile?.email}</span>
-                            <button className="auth-button" onClick={signOutRedirect}>Sign out</button>
+                            <button className="auth-button" onClick={() => auth.signoutRedirect()}>Sign out</button>
                         </div>
                     ) : (
-                        <button className="auth-button" onClick={() => auth?.signinRedirect()}>Sign in</button>
+                        <button className="auth-button" onClick={() => auth.signinRedirect()}>Sign in</button>
                     )}
                 </div>
             </div>
@@ -336,11 +343,17 @@ const App = () => {
                     <div className="trending-films-posters">
                         {trendingFilms.map((item) => (
                             <div key={item.id} className="trending-film-item">
-                                <img
-                                    src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
-                                    alt={item.title}
-                                    onClick={() => getFilmDetails(item.id)}
-                                />
+                                {item.poster_path ? (
+                                    <img
+                                        src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
+                                        alt={item.title}
+                                        onClick={() => getFilmDetails(item.id)}
+                                    />
+                                ) : (
+                                    <div className="no-poster" onClick={() => getFilmDetails(item.id)}>
+                                        No Poster Available
+                                    </div>
+                                )}
                                 <div className="trending-film-info">
                                     <span>{item.title}</span>
                                     <span>{item.release_date ? item.release_date.substring(0, 4) : 'N/A'}</span>
@@ -385,7 +398,14 @@ const App = () => {
                                 <td className="language">{item.language}</td>
                                 <td className="studio">{item.studio}</td>
                                 <td>
-                                    {item.poster && <img src={item.poster} alt={`${item.title} poster`} />}
+                                    {item.poster ? (
+                                        <img 
+                                            src={item.poster} 
+                                            alt={`${item.title} poster`}
+                                        />
+                                    ) : (
+                                        <div className="no-poster">No Poster Available</div>
+                                    )}
                                 </td>
                                 <td>
                                     <button

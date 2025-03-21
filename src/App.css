@@ -616,3 +616,21 @@ button:hover {
     min-width: 90px;
   }
 }
+
+.no-poster {
+    width: 200px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    color: #666;
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.no-poster:hover {
+    background-color: #e0e0e0;
+}
