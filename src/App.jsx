@@ -20,6 +20,13 @@ const App = () => {
     const currentYear = new Date().getFullYear();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
     const [isLoading, setIsLoading] = useState(true);
+    const signOutRedirect = () => {
+        const clientId = "56bh1sv1pilqlhjqa6nsqoo7qu";
+        const logoutUri = "<logout uri>";
+        const cognitoDomain = "https://us-east-1tte33hu8l.auth.us-east-1.amazoncognito.com";
+        window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+      };
+    
     
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -38,6 +45,23 @@ const App = () => {
             setIsLoading(false);
         }
     }, [auth.isLoading]);
+
+    if (auth.error) {
+        return <div>Encountering error... {auth.error.message}</div>;
+      }
+
+      if (auth.isAuthenticated) {
+        return (
+          <div>
+            <pre> Hello: {auth.user?.profile.email} </pre>
+            <pre> ID Token: {auth.user?.id_token} </pre>
+            <pre> Access Token: {auth.user?.access_token} </pre>
+            <pre> Refresh Token: {auth.user?.refresh_token} </pre>
+    
+            <button onClick={() => auth.removeUser()}>Sign out</button>
+          </div>
+        );
+      }
     
     const getVoteColor = (voteAverage) => {
         if (voteAverage > 5) {
