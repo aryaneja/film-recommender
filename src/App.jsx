@@ -16,17 +16,26 @@ const App = () => {
     const [selectedYear, setSelectedYear] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
     const [error, setError] = useState(null);
+    const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(false);
     const currentYear = new Date().getFullYear();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
     const [isLoading, setIsLoading] = useState(true);
-    const signOutRedirect = () => {
-        const clientId = "56bh1sv1pilqlhjqa6nsqoo7qu";
-        const logoutUri = "<logout uri>";
-        const cognitoDomain = "https://us-east-1tte33hu8l.auth.us-east-1.amazoncognito.com";
-        window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    const oidcConfig = {
+        authority: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L',
+        client_id: 'your-client-id',
+        redirect_uri: 'http://localhost:3000',
+        response_type: 'code',
+        scope: 'openid profile email',
+        metadata: {
+          issuer: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L',
+          authorization_endpoint: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L/oauth2/authorize',
+          token_endpoint: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L/oauth2/token',
+          userinfo_endpoint: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L/oauth2/userInfo',
+          end_session_endpoint: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L/logout',
+        }
       };
-    
+      
     
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -291,7 +300,6 @@ const App = () => {
                     )}
                 </div>
             </div>
-            <h1 className="header">the film recommender tool</h1>
             <h2>search for a film</h2>
             <input className="input" placeholder="Enter a film name" value={film} onChange={(e) => setFilm(e.target.value)} />
 
@@ -391,6 +399,11 @@ const App = () => {
             <h2>your film list</h2>
             {error && <div className="error">{error}</div>}
             <div className="table-container">
+            <div className="user-id-input">
+                    <label htmlFor="userId">User ID:</label>
+                    <input type="text" id="userId" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="Enter your ID" />
+                </div>
+
                 <table>
                     <thead>
                         <tr>
@@ -456,7 +469,23 @@ const App = () => {
                         ))}
                     </tbody>
                 </table>
+            
             </div>
+            <footer className="app-footer">
+                <div className="about-section">
+                    <h3>About</h3>
+                    <p>
+                        This project is a personal development exercise aimed at improving my React and web development skills. 
+                        It utilizes the TMDB API to provide film data and recommendations.
+                    </p>
+                    <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+                </div>
+                <div className="tmdb-attribution">
+                    <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
+                        <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="TMDB Logo" className="tmdb-logo" />
+                    </a>
+                </div>
+            </footer>
         </div>
     );
 };
