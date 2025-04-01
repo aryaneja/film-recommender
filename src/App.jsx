@@ -24,7 +24,7 @@ const App = () => {
     const oidcConfig = {
         authority: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L',
         client_id: 'your-client-id',
-        redirect_uri: 'http://localhost:3000',
+        redirect_uri: 'https://film.aryaneja.com',
         response_type: 'code',
         scope: 'openid profile email',
         metadata: {
