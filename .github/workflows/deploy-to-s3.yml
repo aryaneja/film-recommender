@@ -14,32 +14,34 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Node.js and dependencies
-      uses: actions/setup-node@v4
-      with: 
-        node-version: 18
+      - name: Install Node.js and dependencies
+        uses: actions/setup-node@v4
+        with: 
+          node-version: 18
 
-    - name: Install Yarn
-      run: npm install -g yarn
+      - name: Install Yarn
+        run: npm install -g yarn
 
-    - name: Install dependencies
-      run: yarn install
+      - name: Install dependencies
+        working-directory: frontend
+        run: yarn install
 
-    # Inject .env from GitHub Secrets
-    - name: Create .env file
-      run: echo "${{ secrets.ENV_FILE }}" > .env
+      - name: Create .env file
+        working-directory: frontend
+        run: echo "${{ secrets.ENV_FILE }}" > .env
 
-    - name: Build the React app
-      run: yarn build
+      - name: Build the React app
+        working-directory: frontend
+        run: yarn build
 
-    - name: Configure AWS credentials via OIDC
-      uses: aws-actions/configure-aws-credentials@v3
-      with:
-        role-to-assume: arn:aws:iam::522519385494:role/github-actions
-        aws-region: us-east-1
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::522519385494:role/github-actions
+          aws-region: us-east-1
 
-    - name: Deploy to S3
-      run: aws s3 sync dist/ s3://film.aryaneja.com --delete
+      - name: Deploy to S3
+        run: aws s3 sync frontend/dist/ s3://film.aryaneja.com --delete
