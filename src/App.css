@@ -5,6 +5,7 @@
   --secondary-color: #64748b;
   --accent-color: #3b82f6;
   --text-primary: #1e293b;
+  --text-container: #f8fafc;
   --text-secondary: #64748b;
   --text-light: #f8fafc;
   --background-light: #ffffff;
@@ -23,11 +24,13 @@
   --secondary-color: #94a3b8;
   --accent-color: #60a5fa;
   --text-primary: #f8fafc;
+  --text-container: #f8fafc;
   --text-secondary: #94a3b8;
   --text-light: #f8fafc;
   --background-light: #0f172a;
   --background-dark: #1e293b;
   --background-accent: #334155;
+  --background-secondary: #303030;
   --border-color: #334155;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.2);
@@ -162,7 +165,7 @@ h2 {
 }
 
 .trending-films {
-  margin: 1rem 0;
+  margin: 1rem 0;background-color: var(--background-secondary);
   width: 100%;
 }
 
@@ -253,7 +256,7 @@ h2 {
   object-fit: contain;
   cursor: pointer;
   display: block;
-  background-color: var(--background-dark);
+  background-color: var(--background-light);
 }
 
 .trending-film-info {
@@ -264,12 +267,12 @@ h2 {
 
 .trending-film-info span {
   display: block;
-  color: var(--text-primary);
+  color: var(--text-container);
   font-size: 0.9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.2;
+  /*overflow: hidden;
+  text-overflow: ellipsis;*/
+  white-space: wrap;
+  line-height: 1;
 }
 
 .trending-film-info span:last-child {
