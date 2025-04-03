@@ -33,7 +33,7 @@ import './index.css';
 const cognitoAuthConfig = {
   authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L",
   client_id: import.meta.env.VITE_COGNITO_CLIENT_ID,
-  redirect_uri: "https://d84l1y8p4kdic.cloudfront.net",
+  redirect_uri: "https://film.aryaneja.com",
   response_type: "code",
   scope: "email openid phone",
   returnTo:"https://film.aryaneja.com"
