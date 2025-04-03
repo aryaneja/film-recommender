@@ -304,7 +304,7 @@ const App = () => {
                     </button>
                     {auth.isAuthenticated ? (
                         <div className="user-info">
-                            <span>Welcome, {auth.user?.profile?.email}</span>
+                            <span>You are logged in</span>
                             <button className="auth-button" onClick={() => auth.signoutRedirect()}>Sign out</button>
                         </div>
                     ) : (

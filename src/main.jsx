@@ -36,8 +36,9 @@ const cognitoAuthConfig = {
   redirect_uri: "https://film.aryaneja.com",
   response_type: "code",
   scope: "email openid phone",
-  returnTo:"https://film.aryaneja.com"
+  // returnTo:"https://film.aryaneja.com"
 };
+console.log(cognitoAuthConfig)
 
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
