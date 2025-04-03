@@ -21,13 +21,7 @@ const App = () => {
     const currentYear = new Date().getFullYear();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
     const [isLoading, setIsLoading] = useState(true);
-    const oidcConfig = {
-        authority: 'https://us-east-1tte33hu8l.auth.us-east-1.amazoncognito.com',
-        client_id: '56bh1sv1pilqlhjqa6nsqoo7qu',
-        redirect_uri: 'https://d84l1y8p4kdic.cloudfront.net',
-        response_type: 'code',
-        scope: 'openid profile email',
-      };
+
     
       if (auth.error) {
         return <div>Encountering error... {auth.error.message}</div>;
