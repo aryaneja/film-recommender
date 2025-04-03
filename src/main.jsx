@@ -32,8 +32,8 @@ import './index.css';
 
 const cognitoAuthConfig = {
   authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L",
-  client_id: "7r6k782rfm22v1plpo9f9uimhq",
-  redirect_uri: "https://film.aryaneja.com",
+  client_id: "56bh1sv1pilqlhjqa6nsqoo7qu",
+  redirect_uri: "https://d84l1y8p4kdic.cloudfront.net",
   response_type: "code",
   scope: "email openid phone",
 };
