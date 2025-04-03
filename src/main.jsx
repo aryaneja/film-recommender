@@ -28,7 +28,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { AuthProvider } from "react-oidc-context";
-import './index.css';
+import "./index.css";
 
 const cognitoAuthConfig = {
   authority: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Tte33hu8L",
@@ -36,7 +36,6 @@ const cognitoAuthConfig = {
   redirect_uri: "https://film.aryaneja.com",
   response_type: "code",
   scope: "email openid phone",
-  // returnTo:"https://film.aryaneja.com"
 };
 console.log(cognitoAuthConfig)
 

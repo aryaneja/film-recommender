@@ -22,42 +22,15 @@ const App = () => {
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
     const [isLoading, setIsLoading] = useState(true);
 
-    
-      if (auth.error) {
-        return <div>Encountering error... {auth.error.message}</div>;
-      }
-    
-      if (auth.isAuthenticated) {
-        return (
-          <div>
-            <pre> Hello: {auth.user?.profile.email} </pre>
-            <pre> ID Token: {auth.user?.id_token} </pre>
-            <pre> Access Token: {auth.user?.access_token} </pre>
-            <pre> Refresh Token: {auth.user?.refresh_token} </pre>
-    
-            <button onClick={() => auth.removeUser()}>Sign out</button>
-          </div>
-        );
-      }
-
-      const signOutRedirect = () => {
-    const clientId = "7r6k782rfm22v1plpo9f9uimhq";
-    const logoutUri = "<logout uri>";
-    const cognitoDomain = "https://us-east-1tte33hu8l.auth.us-east-1.amazoncognito.com";
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-  };
-    
-      
-    
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
     }, [userFilmList]);
-    
+
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
     }, [theme]);
-    
+
     useEffect(() => {
         // Check if the user is authenticated when the component mounts
         if (auth.isLoading) {
@@ -67,23 +40,6 @@ const App = () => {
         }
     }, [auth.isLoading]);
 
-    if (auth.error) {
-        return <div>Encountering error... {auth.error.message}</div>;
-      }
-
-      if (auth.isAuthenticated) {
-        return (
-          <div>
-            <pre> Hello: {auth.user?.profile.email} </pre>
-            <pre> ID Token: {auth.user?.id_token} </pre>
-            <pre> Access Token: {auth.user?.access_token} </pre>
-            <pre> Refresh Token: {auth.user?.refresh_token} </pre>
-    
-            <button onClick={() => auth.removeUser()}>Sign out</button>
-          </div>
-        );
-      }
-    
     const getVoteColor = (voteAverage) => {
         if (voteAverage > 5) {
             const green = Math.round(((voteAverage - 5) / 5) * 255);
@@ -118,7 +74,7 @@ const App = () => {
             return 0;
         });
     };
-    
+
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             if (film.trim()) {
@@ -127,7 +83,7 @@ const App = () => {
         }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [film]);
-    
+
     useEffect(() => {
         const fetchGenres = async () => {
             try {
@@ -152,7 +108,7 @@ const App = () => {
         };
 
         fetchGenres();
-    },[]);
+    }, []);
 
     const fetchTrendingFilms = async (genre, year) => {
         setLoading(true);
@@ -199,12 +155,12 @@ const App = () => {
         let studio;
         try {
             const response = await fetch(`https://api.themoviedb.org/3/movie/${filmId}?language=en-US&append_to_response=credits`, {
-                    method: 'GET',
-                    headers: {
-                        accept: 'application/json',
-                        Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
-                    },
-                });
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+                },
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -241,9 +197,9 @@ const App = () => {
             setError('Failed to fetch movie details. Please try again.');
             console.error("Error fetching movie details: ", e);
         } finally {
-          setLoading(false);
-        }   
-     };
+            setLoading(false);
+        }
+    };
 
     const addFilm = async () => {
         if (film.trim()) {
@@ -304,18 +260,22 @@ const App = () => {
                     </button>
                     {auth.isAuthenticated ? (
                         <div className="user-info">
-                            <span>You are logged in</span>
-                            <button className="auth-button" onClick={() => auth.signoutRedirect()}>Sign out</button>
+                            <pre> Hello: {auth.user?.profile.email} </pre>
+                            <pre> ID Token: {auth.user?.id_token} </pre>
+                            <pre> Access Token: {auth.user?.access_token} </pre>
+                            <pre> Refresh Token: {auth.user?.refresh_token} </pre>
+                            <button className="auth-button" onClick={() => auth.removeUser()}>Sign out</button>
                         </div>
                     ) : (
                         <button className="auth-button" onClick={() => auth.signinRedirect()}>Sign in</button>
                     )}
                 </div>
             </div>
+            {auth.error && <div>Encountering error... {auth.error.message}</div>}
             <h2>search for a film</h2>
             <input className="input" placeholder="Enter a film name" value={film} onChange={(e) => setFilm(e.target.value)} />
 
-            {film.trim() && searchResults.length > 0 &&(
+            {film.trim() && searchResults.length > 0 && (
                 <ul className="recommendations">
                     {searchResults.map((item, index) => {
                         const releaseYear = item.release_date ? item.release_date.substring(0, 4) : "N/A";
@@ -330,7 +290,7 @@ const App = () => {
 
             {trendingFilms.length > 0 && (
                 <div className="trending-films">
-                    
+
                     <div className="trending-films-header">
                         <h2>
                             {`or choose a trending film ${
@@ -411,7 +371,7 @@ const App = () => {
             <h2>your film list</h2>
             {error && <div className="error">{error}</div>}
             <div className="table-container">
-            <div className="user-id-input">
+                <div className="user-id-input">
                     <label htmlFor="userId">User ID:</label>
                     <input type="text" id="userId" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="Enter your ID" />
                 </div>
@@ -448,8 +408,8 @@ const App = () => {
                                 <td className="studio">{item.studio}</td>
                                 <td>
                                     {item.poster ? (
-                                        <img 
-                                            src={item.poster} 
+                                        <img
+                                            src={item.poster}
                                             alt={`${item.title} poster`}
                                         />
                                     ) : (
@@ -481,13 +441,13 @@ const App = () => {
                         ))}
                     </tbody>
                 </table>
-            
+
             </div>
             <footer className="app-footer">
                 <div className="about-section">
                     <h3>About</h3>
                     <p>
-                        This project is a personal development exercise aimed at improving my React and web development skills. 
+                        This project is a personal development exercise aimed at improving my React and web development skills.
                         It utilizes the TMDB API to provide film data and recommendations.
                     </p>
                     <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
