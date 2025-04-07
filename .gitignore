@@ -27,3 +27,8 @@ node_modules
 dist
 .env
 .idx
+
+.venv/
+cdk.out/
+lambda/cdk/.venv/
+
