@@ -27,16 +27,12 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install AWS CDK CLI
-        run: npm install -g aws-cdk
-
-      - name: Set up virtual environment and install dependencies
+      - name: Install dependencies
         run: |
           python3 -m venv lambda/cdk/.venv
           source lambda/cdk/.venv/bin/activate
-          pip install -r lambda/cdk/requirements.txt
-      - name: Cleanup temporary files
-        run: rm -rf /home/runner/runners/2.323.0/_diag/blocks/*
+          pip install --no-cache-dir -r lambda/cdk/requirements.txt
+          npm install --prefix lambda/cdk aws-cdk
 
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
@@ -44,14 +40,24 @@ jobs:
           role-to-assume: arn:aws:iam::522519385494:role/github-actions
           aws-region: us-east-1
 
+      - name: Pre-synth cleanup
+        run: |
+          rm -rf ~/.npm
+          rm -rf ~/.cache/pip
+          sudo rm -rf /usr/local/lib/node_modules
+
       - name: CDK Synth
         working-directory: lambda/cdk
         run: |
           source .venv/bin/activate
-          cdk synth --app "python app.py"
+          npx cdk synth --app "python app.py"
 
       - name: CDK Deploy
         working-directory: lambda/cdk
         run: |
-          source .venv/bin/activate
-          cdk deploy --app "python app.py" -f
+          npx cdk deploy --app "python app.py" -f
+
+      - name: Final cleanup
+        run: |
+          rm -rf lambda/cdk/.venv
+          rm -rf lambda/cdk/cdk.out
