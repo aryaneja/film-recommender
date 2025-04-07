@@ -21,13 +21,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-          
-      - name: Set up Node.js
+
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "20"
 
-      - name: Install CDK CLI
+      - name: Install AWS CDK CLI
         run: npm install -g aws-cdk
 
       - name: Set up virtual environment and install dependencies
@@ -35,6 +35,8 @@ jobs:
           python3 -m venv lambda/cdk/.venv
           source lambda/cdk/.venv/bin/activate
           pip install -r lambda/cdk/requirements.txt
+      - name: Cleanup temporary files
+        run: rm -rf /home/runner/runners/2.323.0/_diag/blocks/*
 
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
