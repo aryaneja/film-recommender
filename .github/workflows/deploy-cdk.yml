@@ -52,6 +52,12 @@ jobs:
           source ../../.venv/bin/activate
           npx cdk synth --app "python app.py"
 
+      - name: CDK Bootstrap
+        working-directory: lambda/cdk
+        run: |
+          source ../../.venv/bin/activate
+          npx cdk bootstrap aws://522519385494/us-east-1
+
       - name: CDK Deploy
         working-directory: lambda/cdk
         run: |
