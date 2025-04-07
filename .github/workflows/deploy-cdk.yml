@@ -21,19 +21,22 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-      - name: Create and activate virtual environment
+      - name: Install CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Set up virtual environment and install dependencies
         run: |
           python3 -m venv lambda/cdk/.venv
           source lambda/cdk/.venv/bin/activate
+          pip install -r lambda/cdk/requirements.txt
 
-      - name: Install CDK dependencies
-        working-directory: lambda/cdk
-        run: |
-          source .venv/bin/activate
-          pip install -r requirements.txt
-
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::522519385494:role/github-actions
@@ -49,4 +52,4 @@ jobs:
         working-directory: lambda/cdk
         run: |
           source .venv/bin/activate
-          cdk deploy --app "python app.py" --require-approval never
+          cdk deploy --app "python app.py" -f
