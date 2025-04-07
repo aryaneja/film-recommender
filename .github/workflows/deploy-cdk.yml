@@ -1,0 +1,52 @@
+name: Deploy CDK Stack
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Create and activate virtual environment
+        run: |
+          python3 -m venv lambda/cdk/.venv
+          source lambda/cdk/.venv/bin/activate
+
+      - name: Install CDK dependencies
+        working-directory: lambda/cdk
+        run: |
+          source .venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::522519385494:role/github-actions
+          aws-region: us-east-1
+
+      - name: CDK Synth
+        working-directory: lambda/cdk
+        run: |
+          source .venv/bin/activate
+          cdk synth --app "python app.py"
+
+      - name: CDK Deploy
+        working-directory: lambda/cdk
+        run: |
+          source .venv/bin/activate
+          cdk deploy --app "python app.py" --require-approval never
