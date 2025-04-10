@@ -62,7 +62,7 @@ jobs:
         working-directory: lambda/cdk
         run: |
           source ../../.venv/bin/activate
-          npx cdk deploy --app "python app.py" -f
+          npx cdk deploy --app "python app.py" --require-approval never -f
 
       - name: Final cleanup
         run: |
