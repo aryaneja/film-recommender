@@ -8,6 +8,7 @@
     pkgs.nodejs_20
     pkgs.sudo
     pkgs.python3
+    pkgs.python312Packages.pip
   ];
   # Sets environment variables in the workspace
   env = {};
