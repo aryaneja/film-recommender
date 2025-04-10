@@ -15,7 +15,16 @@ class LetterboxdParserStack(Stack):
             self,
             "LetterboxdParserFunction",
             runtime=_lambda.Runtime.PYTHON_3_11,
-            handler="parser.lambda_handler",  # adjust if different
-            code=_lambda.Code.from_asset(lambda_code_path),
+            handler="parser.lambda_handler",
+            code=_lambda.Code.from_asset(
+                path=lambda_code_path,
+                bundling=_lambda.BundlingOptions(
+                    image=_lambda.Runtime.PYTHON_3_11.bundling_image,
+                    command=[
+                        "bash", "-c",
+                        "pip install -r requirements.txt -t /asset-output && cp -r . /asset-output"
+                    ]
+                )
+            ),
             function_name="letterboxd_parser",
         )
