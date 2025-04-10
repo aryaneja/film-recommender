@@ -1,4 +1,4 @@
-#!/home/user/film-recommendor/lambda/cdk/.venv/bin/python3
+#!/home/user/film-recommendor/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
