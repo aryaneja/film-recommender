@@ -18,7 +18,7 @@ class LetterboxdParserStack(Stack):
             handler="parser.lambda_handler",
             code=_lambda.Code.from_asset(
                 path=lambda_code_path,
-                bundling=_lambda.Code.bundling_options(
+                bundling=_lambda.BundlingOptions(
                     image=_lambda.Runtime.PYTHON_3_11.bundling_image,
                     command=[
                         "bash", "-c",
