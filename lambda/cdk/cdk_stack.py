@@ -2,7 +2,6 @@ from aws_cdk import (
     aws_lambda as _lambda,
     Stack,
 )
-from aws_cdk.aws_lambda import BundlingOptions
 from constructs import Construct
 import os
 
@@ -19,7 +18,7 @@ class LetterboxdParserStack(Stack):
             handler="parser.lambda_handler",
             code=_lambda.Code.from_asset(
                 path=lambda_code_path,
-                bundling=BundlingOptions(
+                bundling=_lambda.Code.bundling_options(
                     image=_lambda.Runtime.PYTHON_3_11.bundling_image,
                     command=[
                         "bash", "-c",
