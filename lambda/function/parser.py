@@ -36,11 +36,11 @@ def get_letterboxd_films(username):
         return None
 
 def lambda_handler(event, context):
-    """
-    AWS Lambda handler function.
-    """
     try:
-        username = event.get("username")
+        # Parse the incoming JSON body
+        body = json.loads(event.get("body", "{}"))
+        username = body.get("username")
+
         if not username:
             return {
                 "statusCode": 400,
