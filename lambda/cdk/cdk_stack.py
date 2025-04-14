@@ -2,7 +2,6 @@ from aws_cdk import (
     Stack,
     aws_lambda as _lambda,
     aws_apigateway as rest_api,
-    RemovalPolicy,
 )
 from aws_cdk.aws_lambda_python_alpha import PythonFunction
 from constructs import Construct
@@ -31,7 +30,5 @@ class LetterboxdStack(Stack):
             default_cors_preflight_options=rest_api.CorsOptions(
                 allow_origins=rest_api.Cors.ALL_ORIGINS,
                 allow_methods=rest_api.Cors.ALL_METHODS,
-                
-            ),
-            removal_policy=RemovalPolicy.DESTROY
+            )
         )

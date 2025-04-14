@@ -31,6 +31,7 @@ jobs:
         run: |
           python3 -m venv .venv
           source .venv/bin/activate
+          pip install --no-cache-dir -r lambda/function/requirements.txt
           pip install --no-cache-dir -r lambda/cdk/requirements.txt
           npm install --prefix lambda/cdk aws-cdk
 
