@@ -37,6 +37,9 @@ def get_letterboxd_films(username):
 
 def lambda_handler(event, context):
     try:
+        # Log the entire event for debugging
+        print("Received event:", json.dumps(event))
+
         # Parse the incoming JSON body
         body = event.get("body", {})
         if isinstance(body, str):
