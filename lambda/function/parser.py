@@ -38,7 +38,10 @@ def get_letterboxd_films(username):
 def lambda_handler(event, context):
     try:
         # Parse the incoming JSON body
-        body = json.loads(event.get("body", "{}"))
+        body = event.get("body", {})
+        if isinstance(body, str):
+            body = json.loads(body)
+
         username = body.get("username")
 
         if not username:
