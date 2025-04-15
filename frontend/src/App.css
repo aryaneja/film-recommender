@@ -206,6 +206,19 @@ h2 {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
+.filter-container button {
+    background-color: #007bff; /* Set a consistent background color */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.filter-container button:hover {
+    background-color: #007bff; /* Ensure the background color remains the same on hover */
+}
+
 .trending-films-posters {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

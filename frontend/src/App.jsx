@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import './App.css';
+import { fetchFilms } from "./apiService";
 
 const App = () => {
     const auth = useAuth();
@@ -21,6 +22,10 @@ const App = () => {
     const currentYear = new Date().getFullYear();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
     const [isLoading, setIsLoading] = useState(true);
+    const [customApiFilms, setCustomApiFilms] = useState([]);
+    const [customApiUsername, setCustomApiUsername] = useState("");
+    const [customApiLoading, setCustomApiLoading] = useState(false);
+    const [customApiError, setCustomApiError] = useState(null);
 
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -246,6 +251,120 @@ const App = () => {
         setTheme(theme === 'light' ? 'dark' : 'light');
     };
 
+    const handleFetchCustomApiFilms = async () => {
+        setCustomApiLoading(true);
+        setCustomApiError(null);
+        try {
+            const data = await fetchFilms(customApiUsername);
+            console.log("Full API Response:", data); // Log the full API response for debugging
+
+            if (data && data.body) {
+                const parsedBody = JSON.parse(data.body);
+                if (Array.isArray(parsedBody)) {
+                    const updatedFilms = await Promise.all(
+                        parsedBody.map(async (filmName) => {
+                            try {
+                                const response = await fetch(
+                                    `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(filmName)}&include_adult=false&language=en-US&page=1`,
+                                    {
+                                        method: 'GET',
+                                        headers: {
+                                            accept: 'application/json',
+                                            Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+                                        },
+                                    }
+                                );
+
+                                if (!response.ok) {
+                                    throw new Error(`Failed to fetch film: ${filmName}`);
+                                }
+
+                                const data = await response.json();
+                                if (data.results && data.results.length > 0) {
+                                    const movieDetails = data.results[0];
+                                    return {
+                                        title: filmName,
+                                        available: true,
+                                        details: {
+                                            id: movieDetails.id,
+                                            title: movieDetails.title,
+                                            release_date: movieDetails.release_date,
+                                            popularity: movieDetails.popularity,
+                                            vote_average: movieDetails.vote_average,
+                                            overview: movieDetails.overview,
+                                            poster: movieDetails.poster_path
+                                                ? `https://image.tmdb.org/t/p/w200${movieDetails.poster_path}`
+                                                : null,
+                                            director: "Unknown", // Can be fetched later if needed
+                                            language: movieDetails.original_language,
+                                            studio: "Unknown", // Can be fetched later if needed
+                                            fromLetterboxd: "Y",
+                                        },
+                                    };
+                                } else {
+                                    return { title: filmName, available: false };
+                                }
+                            } catch (error) {
+                                console.error(`Error processing film: ${filmName}`, error);
+                                return { title: filmName, available: false };
+                            }
+                        })
+                    );
+                    setCustomApiFilms(updatedFilms);
+                } else {
+                    console.error("Unexpected API response format:", parsedBody);
+                    throw new Error("Unexpected API response format");
+                }
+            } else {
+                console.error("Invalid API response structure:", data);
+                throw new Error("Invalid API response structure");
+            }
+        } catch (err) {
+            setCustomApiError("Failed to fetch films from custom API. Please try again.");
+            console.error("Error fetching films from custom API:", err);
+        } finally {
+            setCustomApiLoading(false);
+        }
+    };
+
+    const addFilmFromCustomApi = async (filmDetails) => {
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `https://api.themoviedb.org/3/movie/${filmDetails.id}?language=en-US&append_to_response=credits`,
+                {
+                    method: 'GET',
+                    headers: {
+                        accept: 'application/json',
+                        Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch additional details for film: ${filmDetails.title}`);
+            }
+
+            const data = await response.json();
+
+            const director = data.credits?.crew?.find((crewMember) => crewMember.job === "Director")?.name || "Unknown";
+            const studio = data.production_companies?.[0]?.name || "Unknown";
+
+            const updatedFilmDetails = {
+                ...filmDetails,
+                director,
+                studio,
+            };
+
+            addFilmToUserList(updatedFilmDetails);
+        } catch (error) {
+            console.error("Error fetching additional details for film:", error);
+            setError("Failed to fetch additional details. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (isLoading) {
         return <div>Loading...</div>;
     }
@@ -269,21 +388,32 @@ const App = () => {
                 </div>
             </div>
             {auth.error && <div>Encountering error... {auth.error.message}</div>}
-            <h2>search for a film</h2>
-            <input className="input" placeholder="Enter a film name" value={film} onChange={(e) => setFilm(e.target.value)} />
 
-            {film.trim() && searchResults.length > 0 && (
-                <ul className="recommendations">
-                    {searchResults.map((item, index) => {
-                        const releaseYear = item.release_date ? item.release_date.substring(0, 4) : "N/A";
-                        return (
-                            <li key={item.id} onClick={() => getFilmDetails(item.id)}>
-                                {item.title} [{releaseYear}]
-                            </li>
-                        );
-                    })}
-                </ul>
-            )}
+            <div className="trending-films">
+                <div className="trending-films-header">
+                    <h2>search for a film</h2>
+                    <div className="filter-container">
+                        <input
+                            className="input"
+                            placeholder="Enter a film name"
+                            value={film}
+                            onChange={(e) => setFilm(e.target.value)}
+                        />
+                    </div>
+                </div>
+                {film.trim() && searchResults.length > 0 && (
+                    <ul className="recommendations">
+                        {searchResults.map((item, index) => {
+                            const releaseYear = item.release_date ? item.release_date.substring(0, 4) : "N/A";
+                            return (
+                                <li key={item.id} onClick={() => getFilmDetails(item.id)}>
+                                    {item.title} [{releaseYear}]
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </div>
 
             {trendingFilms.length > 0 && (
                 <div className="trending-films">
@@ -365,6 +495,37 @@ const App = () => {
                 </div>
             )}
 
+            <div className="trending-films">
+                <div className="trending-films-header">
+                    <h2>or fetch films from your letterboxd feed</h2>
+                    <div className="filter-container">
+                        <input
+                            type="text"
+                            placeholder="enter public letterboxd username"
+                            value={customApiUsername}
+                            onChange={(e) => setCustomApiUsername(e.target.value)}
+                        />
+                        <button onClick={handleFetchCustomApiFilms} disabled={customApiLoading}>
+                            {customApiLoading ? "Loading..." : "Fetch Films"}
+                        </button>
+                        <button onClick={() => setCustomApiFilms([])} disabled={customApiLoading || customApiFilms.length === 0}>
+                            Clear
+                        </button>
+                    </div>
+                    {customApiError && <p className="error">{customApiError}</p>}
+                </div>
+                <ul className="recommendations">
+                    {customApiFilms.map((film, index) => {
+                        const releaseYear = film.details?.release_date ? film.details.release_date.substring(0, 4) : "N/A";
+                        return (
+                            <li key={index} onClick={() => film.available && addFilmFromCustomApi(film.details)}>
+                                {film.title} [{releaseYear}] {film.available ? "" : "Cannot Find on TMDB"}
+                            </li>
+                        );
+                    })}
+                </ul>
+            </div>
+
             <h2>your film list</h2>
             {error && <div className="error">{error}</div>}
             <div className="table-container">
@@ -384,6 +545,7 @@ const App = () => {
                             <th onClick={() => requestSort('director')} className="director">Director</th>
                             <th onClick={() => requestSort('language')} className="language">Language</th>
                             <th onClick={() => requestSort('studio')} className="studio">Studio</th>
+                            <th>From Letterboxd</th>
                             <th>Poster</th>
                             <th>Remove</th>
                         </tr>
@@ -403,6 +565,7 @@ const App = () => {
                                 <td className="director">{item.director}</td>
                                 <td className="language">{item.language}</td>
                                 <td className="studio">{item.studio}</td>
+                                <td>{item.fromLetterboxd}</td>
                                 <td>
                                     {item.poster ? (
                                         <img
