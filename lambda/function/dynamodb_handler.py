@@ -32,17 +32,38 @@ def lambda_handler(event, context):
             }
 
         elif http_method == 'GET':
-            response = table.get_item(Key={'userId': user_id})
-            item = response.get('Item', {})
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
-                    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
-                },
-                'body': json.dumps({'filmList': item.get('filmList', [])})
-            }
+            try:
+                response = table.get_item(Key={'userId': user_id})
+                item = response.get('Item', {})
+                if not item:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Access-Control-Allow-Origin': '*',
+                            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                            'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+                        },
+                        'body': json.dumps({'error': 'User not found'})
+                    }
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                        'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+                    },
+                    'body': json.dumps({'filmList': item.get('filmList', [])})
+                }
+            except Exception as e:
+                return {
+                    'statusCode': 500,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                        'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+                    },
+                    'body': json.dumps({'error': f'Failed to fetch film list: {str(e)}'})
+                }
 
         return {
             'statusCode': 400,
