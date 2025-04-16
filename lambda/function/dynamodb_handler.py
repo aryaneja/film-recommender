@@ -10,7 +10,7 @@ table = dynamodb.Table(table_name)
 
 def lambda_handler(event, context):
     try:
-        user_id = event['requestContext']['authorizer']['claims']['sub']
+        user_id = event['requestContext']['authorizer']['claims']['email']
         http_method = event.get('httpMethod')
 
         if http_method == 'POST':
