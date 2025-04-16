@@ -3,6 +3,7 @@ import requests
 import os
 import json
 
+
 def get_letterboxd_films(username):
     """
     Fetches and parses the Letterboxd RSS feed for a given username.
