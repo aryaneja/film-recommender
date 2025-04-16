@@ -23,6 +23,11 @@ def lambda_handler(event, context):
             })
             return {
                 'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+                },
                 'body': json.dumps({'message': 'Film list saved successfully'})
             }
 
@@ -31,20 +36,40 @@ def lambda_handler(event, context):
             item = response.get('Item', {})
             return {
                 'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+                },
                 'body': json.dumps({'filmList': item.get('filmList', [])})
             }
 
         return {
             'statusCode': 400,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+            },
             'body': json.dumps({'message': 'Unsupported HTTP method'})
         }
     except KeyError as e:
         return {
             'statusCode': 400,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+            },
             'body': json.dumps({'error': f'Missing key: {str(e)}'})
         }
     except Exception as e:
         return {
             'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+            },
             'body': json.dumps({'error': str(e)})
         }
