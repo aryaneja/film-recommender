@@ -17,7 +17,6 @@ const App = () => {
     const [selectedYear, setSelectedYear] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
     const [error, setError] = useState(null);
-    const [userId, setUserId] = useState('');
     const [loading, setLoading] = useState(false);
     const currentYear = new Date().getFullYear();
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
@@ -365,6 +364,62 @@ const App = () => {
         }
     };
 
+    const saveFilmListToDynamoDB = async () => {
+        if (!auth.isAuthenticated) {
+            alert("You need to be signed in to save your film list.");
+            return;
+        }
+
+        const userEmail = auth.user?.profile.email;
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/dynamodb`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${auth.user?.id_token}`,
+                },
+                body: JSON.stringify({ userId: userEmail, filmList: userFilmList }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to save film list.");
+            }
+
+            alert("Film list saved successfully!");
+        } catch (error) {
+            console.error("Error saving film list:", error);
+            alert("Failed to save film list. Please try again.");
+        }
+    };
+
+    const loadFilmListFromDynamoDB = async () => {
+        if (!auth.isAuthenticated) {
+            alert("You need to be signed in to load your film list.");
+            return;
+        }
+
+        const userEmail = auth.user?.profile.email;
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/dynamodb?userId=${userEmail}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${auth.user?.id_token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to load film list.");
+            }
+
+            const data = await response.json();
+            setUserFilmList(data.filmList || []);
+            alert("Film list loaded successfully!");
+        } catch (error) {
+            console.error("Error loading film list:", error);
+            alert("Failed to load film list. Please try again.");
+        }
+    };
+
     if (isLoading) {
         return <div>Loading...</div>;
     }
@@ -529,9 +584,9 @@ const App = () => {
             <h2>your film list</h2>
             {error && <div className="error">{error}</div>}
             <div className="table-container">
-                <div className="user-id-input">
-                    <label htmlFor="userId">User ID:</label>
-                    <input type="text" id="userId" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="Enter your ID" />
+                <div className="film-list-actions">
+                    <button onClick={saveFilmListToDynamoDB}>Save Film List</button>
+                    <button onClick={loadFilmListFromDynamoDB}>Load Film List</button>
                 </div>
 
                 <table>
