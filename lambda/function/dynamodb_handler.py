@@ -40,6 +40,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'CORS preflight OK'})
             }
 
+
         if http_method == 'POST':
             body = json.loads(event['body'], parse_float=Decimal)
             film_list = body.get('filmList', [])
