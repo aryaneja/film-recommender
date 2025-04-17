@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import './App.css';
-import { fetchFilms } from "./apiService";
+import { fetchFilms, getBedrockRecommendations } from "./apiService";
 
 const App = () => {
     const auth = useAuth();
@@ -25,6 +25,7 @@ const App = () => {
     const [customApiUsername, setCustomApiUsername] = useState("");
     const [customApiLoading, setCustomApiLoading] = useState(false);
     const [customApiError, setCustomApiError] = useState(null);
+    const [bedrockRecommendations, setBedrockRecommendations] = useState([]);
 
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -417,6 +418,19 @@ const App = () => {
         } catch (error) {
             console.error("Error loading film list:", error);
             alert("Failed to load film list. Please try again.");
+        }
+    };
+
+    const handleGetBedrockRecommendations = async () => {
+        try {
+            const userPreferences = prompt("Enter your movie preferences (genres, directors, etc.):");
+            if (userPreferences) {
+                const recommendations = await getBedrockRecommendations(userPreferences);
+                setBedrockRecommendations(recommendations);
+            }
+        } catch (error) {
+            console.error("Error getting Bedrock recommendations:", error);
+            alert("Failed to get Bedrock recommendations. Please try again.");
         }
     };
 
