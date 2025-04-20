@@ -112,3 +112,7 @@ class LetterboxdStack(Stack):
         dynamodb_api = api.root.add_resource("dynamodb")
         dynamodb_api.add_method("POST", rest_api.LambdaIntegration(dynamodb_lambda))
         dynamodb_api.add_method("GET", rest_api.LambdaIntegration(dynamodb_lambda))
+
+        # Add API Gateway endpoints for the Bedrock Recommender Lambda function
+        bedrock_api = api.root.add_resource("bedrock")
+        bedrock_api.add_method("POST", rest_api.LambdaIntegration(bedrock_lambda))
