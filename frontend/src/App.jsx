@@ -461,9 +461,9 @@ const App = () => {
     };
 
     const handleSendMessage = async (message = userMessage, isBackground = false) => {
-        // Ensure message is a string before trimming
         if (typeof message !== 'string' || !message.trim()) return;
         setLoading(true);
+        setError(null); // Clear previous errors
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/bedrock`, {
                 method: 'POST',
@@ -479,39 +479,39 @@ const App = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to send message.');
+                const errorData = await response.json().catch(() => ({}));
+                setError(errorData.error || 'Failed to send message.');
+                return;
             }
 
             const data = await response.json();
+            if (data && data.error) {
+                setError(data.error);
+                return;
+            }
             if (isFinalized && !isBackground) {
                 setRecommendations(data);
                 setChatResponse("");
             } else if (!isBackground) {
                 setChatResponse(data);
             }
-
             if (!isBackground) {
                 setChatHistory([...chatHistory, { human: message, assistant: data }]);
             }
-
             if (isBackground) {
-                // Update the assistant response for the finalize message
                 setChatHistory((prevHistory) => {
                     const updatedHistory = [...prevHistory];
                     updatedHistory[updatedHistory.length - 1].assistant = data;
                     return updatedHistory;
                 });
             }
-
             if (!isBackground) {
                 setUserMessage('');
             }
-
             return data;
-
         } catch (error) {
-            console.error('Error sending message:', error);
             setError("Failed to send message");
+            console.error('Error sending message:', error);
         } finally {
             setLoading(false);
         }
@@ -520,13 +520,16 @@ const App = () => {
     const handleFinalize = async () => {
         setIsFinalized(true);
         setChatHistory([...chatHistory, { human: "finalize", assistant: "" }]);
+        setError(null); // Clear previous errors
         const response = await handleSendMessage("finalize", true);
-
         if (response && Array.isArray(response)) {
             const detailedRecommendations = await Promise.all(
                 response.map(async (film) => await fetchFilmDetails(film.id))
             );
             setRecommendations(detailedRecommendations.filter(Boolean));
+        } else if (response && response.error) {
+            setRecommendations([]);
+            setError(response.error);
         }
     };
 

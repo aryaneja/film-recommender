@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     film_titles_str = ", ".join(film_titles) if film_titles else "No films in their list."
 
     system_prompt = (
-        "You are a film recommendation chatbot. Be casual, brief, and conversational — like you're chatting with a friend. Always end with a question for the user to know more about their taste in film."
+        "You are a film recommendation chatbot. Be casual, brief, and conversational — like you're chatting with a friend. Always recommend the user a minimum of 5 films and always end with a question for the user to know more about their taste in film."
     )
 
     conversation_history = f"\n\nHuman: Here are some movies the user has already added to their list: {film_titles_str}.\n"
@@ -47,10 +47,11 @@ def lambda_handler(event, context):
     conversation_history += f"Human: {user_message}\nAssistant:"
 
     if "finalize" in user_message.lower():
+        # Stronger prompt: require TMDB id, title, and reason
         full_prompt = (
             f"\n\nHuman: {system_prompt}\n"
             f"Based on the previous conversation:\n{conversation_history}\n"
-            f"Please provide a JSON array of 5 film recommendations with brief reasons. Use emojis only. No extra text.\n\nAssistant:"
+            f"Please provide a JSON array of 5 film recommendations. Each object must have: id (TMDB movie id), title, and a brief reason. Use emojis only. No extra text.\n\nAssistant:"
         )
     else:
         full_prompt = f"\n\nHuman: {system_prompt}\n{conversation_history}"
@@ -90,9 +91,16 @@ def lambda_handler(event, context):
     if "finalize" in user_message.lower():
         try:
             recommendations = json.loads(completion_text)
-        except json.JSONDecodeError as e:
-            print("Error decoding JSON from Claude:", e)
-            recommendations = []
+            # Validate recommendations: must be a list of dicts with 'id' and 'title'
+            if not (isinstance(recommendations, list) and all(isinstance(f, dict) and 'id' in f and 'title' in f for f in recommendations)):
+                raise ValueError("Recommendations must be a list of objects with 'id' and 'title'.")
+        except Exception as e:
+            print("Error decoding or validating JSON from Claude:", e)
+            return {
+                'statusCode': 500,
+                'headers': headers,
+                'body': json.dumps({'error': 'Model did not return valid recommendations. Please try again.'})
+            }
         return {
             'statusCode': 200,
             'headers': headers,
