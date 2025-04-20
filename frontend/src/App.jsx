@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import './App.css';
-import { fetchFilms, getBedrockRecommendations } from "./apiService";
+import { fetchFilms } from "./apiService";
 
 const App = () => {
     const auth = useAuth();
@@ -25,7 +25,11 @@ const App = () => {
     const [customApiUsername, setCustomApiUsername] = useState("");
     const [customApiLoading, setCustomApiLoading] = useState(false);
     const [customApiError, setCustomApiError] = useState(null);
-    const [bedrockRecommendations, setBedrockRecommendations] = useState([]);
+    const [chatHistory, setChatHistory] = useState([]);
+    const [userMessage, setUserMessage] = useState('');
+    const [chatResponse, setChatResponse] = useState('');
+    const [recommendations, setRecommendations] = useState([]);
+    const [isFinalized, setIsFinalized] = useState(false);
 
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -37,7 +41,6 @@ const App = () => {
     }, [theme]);
 
     useEffect(() => {
-        // Check if the user is authenticated when the component mounts
         if (auth.isLoading) {
             setIsLoading(true);
         } else {
@@ -256,7 +259,7 @@ const App = () => {
         setCustomApiError(null);
         try {
             const data = await fetchFilms(customApiUsername);
-            console.log("Full API Response:", data); // Log the full API response for debugging
+            console.log("Full API Response:", data);
 
             if (data && data.body) {
                 const parsedBody = JSON.parse(data.body);
@@ -295,9 +298,9 @@ const App = () => {
                                             poster: movieDetails.poster_path
                                                 ? `https://image.tmdb.org/t/p/w200${movieDetails.poster_path}`
                                                 : null,
-                                            director: "Unknown", // Can be fetched later if needed
+                                            director: "Unknown",
                                             language: movieDetails.original_language,
-                                            studio: "Unknown", // Can be fetched later if needed
+                                            studio: "Unknown",
                                             fromLetterboxd: "Y",
                                         },
                                     };
@@ -420,18 +423,50 @@ const App = () => {
             alert("Failed to load film list. Please try again.");
         }
     };
-
-    const handleGetBedrockRecommendations = async () => {
+    
+    const handleSendMessage = async () => {
+        if (!userMessage.trim()) return;
+        setLoading(true)
         try {
-            const userPreferences = prompt("Enter your movie preferences (genres, directors, etc.):");
-            if (userPreferences) {
-                const recommendations = await getBedrockRecommendations(userPreferences);
-                setBedrockRecommendations(recommendations);
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/bedrock`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${auth.user?.id_token}`,
+                },
+                body: JSON.stringify({
+                    userMessage: userMessage,
+                    chatHistory: chatHistory,
+                    filmList: userFilmList
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send message.');
             }
+
+            const data = await response.json();
+            if (isFinalized){
+                setRecommendations(data)
+                setChatResponse("");
+            } else {
+                setChatResponse(data);
+            }
+            setChatHistory([...chatHistory, { human: userMessage, assistant: data }]);
+            setUserMessage('');
+
         } catch (error) {
-            console.error("Error getting Bedrock recommendations:", error);
-            alert("Failed to get Bedrock recommendations. Please try again.");
+            console.error('Error sending message:', error);
+            setError("Failed to send message");
+        } finally {
+            setLoading(false);
         }
+    };
+
+    const handleFinalize = () => {
+        setIsFinalized(true);
+        setUserMessage("finalize");
+        handleSendMessage();
     };
 
     if (isLoading) {
@@ -439,7 +474,7 @@ const App = () => {
     }
 
     return (
-        <div className="container">
+        <><div className="container">
             <div className="header-container">
                 <h1 className="header">Film Recommender</h1>
                 <div className="header-controls">
@@ -466,8 +501,7 @@ const App = () => {
                             className="input"
                             placeholder="Enter a film name"
                             value={film}
-                            onChange={(e) => setFilm(e.target.value)}
-                        />
+                            onChange={(e) => setFilm(e.target.value)} />
                     </div>
                 </div>
                 {film.trim() && searchResults.length > 0 && (
@@ -489,26 +523,20 @@ const App = () => {
 
                     <div className="trending-films-header">
                         <h2>
-                            {`or choose a trending film ${
-                                selectedGenre
+                            {`or choose a trending film ${selectedGenre
                                     ? `in ${genres.find((g) => g.id === selectedGenre)?.name}`
-                                    : "across all genres"
-                            } ${
-                                selectedYear
+                                    : "across all genres"} ${selectedYear
                                     ? `released in ${selectedYear}`
-                                    : "across all years"
-                            }`}
+                                    : "across all years"}`}
                         </h2>
                         <div className="filter-container">
                             <select
                                 value={selectedGenre ?? ""}
-                                onChange={(e) =>
-                                    setSelectedGenre(
-                                        e.target.value === ""
-                                            ? null
-                                            : parseInt(e.target.value)
-                                    )
-                                }
+                                onChange={(e) => setSelectedGenre(
+                                    e.target.value === ""
+                                        ? null
+                                        : parseInt(e.target.value)
+                                )}
                             >
                                 <option value="">All Genres</option>
                                 {genres.map((genre) => (
@@ -519,13 +547,11 @@ const App = () => {
                             </select>
                             <select
                                 value={selectedYear ?? ""}
-                                onChange={(e) =>
-                                    setSelectedYear(
-                                        e.target.value === ""
-                                            ? null
-                                            : parseInt(e.target.value)
-                                    )
-                                }
+                                onChange={(e) => setSelectedYear(
+                                    e.target.value === ""
+                                        ? null
+                                        : parseInt(e.target.value)
+                                )}
                             >
                                 <option value="">All Years</option>
                                 {Array.from(
@@ -547,13 +573,12 @@ const App = () => {
                                     <img
                                         src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
                                         alt={item.title}
-                                        onClick={() => getFilmDetails(item.id)}
-                                    />
+                                        onClick={() => getFilmDetails(item.id)} />
                                 ) : (
                                     <div className="no-poster" onClick={() => getFilmDetails(item.id)}>
                                         No Poster Available
                                     </div>
-                                )}
+                                )}{item.poster_path}
                                 <div className="trending-film-info">
                                     <span>{item.title}</span>
                                     <span>{item.release_date ? item.release_date.substring(0, 4) : 'N/A'}</span>
@@ -572,8 +597,7 @@ const App = () => {
                             type="text"
                             placeholder="enter public letterboxd username"
                             value={customApiUsername}
-                            onChange={(e) => setCustomApiUsername(e.target.value)}
-                        />
+                            onChange={(e) => setCustomApiUsername(e.target.value)} />
                         <button onClick={handleFetchCustomApiFilms} disabled={customApiLoading}>
                             {customApiLoading ? "Loading..." : "Fetch Films"}
                         </button>
@@ -639,8 +663,7 @@ const App = () => {
                                     {item.poster ? (
                                         <img
                                             src={item.poster}
-                                            alt={`${item.title} poster`}
-                                        />
+                                            alt={`${item.title} poster`} />
                                     ) : (
                                         <div className="no-poster">No Poster Available</div>
                                     )}
@@ -672,7 +695,44 @@ const App = () => {
                 </table>
 
             </div>
-            <footer className="app-footer">
+            {auth.isAuthenticated ? (
+                <div className="chat-container">
+                    <div className="chat-history">
+                        {chatHistory.map((turn, index) => (
+                            <div key={index} className="chat-turn">
+                                <div className="user-message">User: {turn.human}</div>
+                                <div className="assistant-message">Assistant: {turn.assistant}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="chat-input">
+                        <input
+                            type="text"
+                            value={userMessage}
+                            onChange={(e) => setUserMessage(e.target.value)}
+                            placeholder="Type your message here..."
+                            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} />
+                        <button onClick={handleSendMessage} disabled={loading}>Send</button>
+                        {!isFinalized && <button onClick={handleFinalize} disabled={loading}>Finalize</button>}
+                    </div>
+                    {chatResponse && <div className="chat-response">{chatResponse}</div>}
+                    {recommendations.length > 0 && (
+                        <div className="recommendations-list">
+                            <h2>Recommendations:</h2>
+                            <ul>
+                                {recommendations.map((rec, index) => (
+                                    <li key={index}>{rec}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="chat-container">
+                    <p>Please sign in to use the AI chatbot and get personalized recommendations.</p>
+                </div>
+            )}
+        </div><footer className="app-footer">
                 <div className="about-section">
                     <h3>About</h3>
                     <p>
@@ -686,8 +746,7 @@ const App = () => {
                         <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="TMDB Logo" className="tmdb-logo" />
                     </a>
                 </div>
-            </footer>
-        </div>
+            </footer></>
     );
 };
 
