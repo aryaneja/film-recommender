@@ -423,10 +423,46 @@ const App = () => {
             alert("Failed to load film list. Please try again.");
         }
     };
-    
-    const handleSendMessage = async () => {
-        if (!userMessage.trim()) return;
-        setLoading(true)
+
+    const fetchFilmDetails = async (filmId) => {
+        try {
+            const response = await fetch(`https://api.themoviedb.org/3/movie/${filmId}?language=en-US&append_to_response=credits`, {
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    Authorization: `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch details for film ID: ${filmId}`);
+            }
+
+            const data = await response.json();
+            const director = data.credits?.crew?.find((crewMember) => crewMember.job === "Director")?.name || "Unknown";
+            const studio = data.production_companies?.[0]?.name || "Unknown";
+
+            return {
+                id: data.id,
+                title: data.title,
+                release_date: data.release_date,
+                popularity: data.popularity,
+                vote_average: data.vote_average,
+                overview: data.overview,
+                poster: data.poster_path ? `https://image.tmdb.org/t/p/w200${data.poster_path}` : null,
+                director,
+                language: data.original_language,
+                studio,
+            };
+        } catch (error) {
+            console.error('Error fetching film details:', error);
+            return null;
+        }
+    };
+
+    const handleSendMessage = async (message = userMessage, isBackground = false) => {
+        if (!message.trim()) return;
+        setLoading(true);
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/bedrock`, {
                 method: 'POST',
@@ -435,7 +471,7 @@ const App = () => {
                     'Authorization': `Bearer ${auth.user?.id_token}`,
                 },
                 body: JSON.stringify({
-                    userMessage: userMessage,
+                    userMessage: message,
                     chatHistory: chatHistory,
                     filmList: userFilmList
                 }),
@@ -446,14 +482,31 @@ const App = () => {
             }
 
             const data = await response.json();
-            if (isFinalized){
-                setRecommendations(data)
+            if (isFinalized && !isBackground) {
+                setRecommendations(data);
                 setChatResponse("");
-            } else {
+            } else if (!isBackground) {
                 setChatResponse(data);
             }
-            setChatHistory([...chatHistory, { human: userMessage, assistant: data }]);
-            setUserMessage('');
+
+            if (!isBackground) {
+                setChatHistory([...chatHistory, { human: message, assistant: data }]);
+            }
+
+            if (isBackground) {
+                // Update the assistant response for the finalize message
+                setChatHistory((prevHistory) => {
+                    const updatedHistory = [...prevHistory];
+                    updatedHistory[updatedHistory.length - 1].assistant = data;
+                    return updatedHistory;
+                });
+            }
+
+            if (!isBackground) {
+                setUserMessage('');
+            }
+
+            return data;
 
         } catch (error) {
             console.error('Error sending message:', error);
@@ -463,10 +516,76 @@ const App = () => {
         }
     };
 
-    const handleFinalize = () => {
+    const handleFinalize = async () => {
         setIsFinalized(true);
-        setUserMessage("finalize");
-        handleSendMessage();
+        setChatHistory([...chatHistory, { human: "finalize", assistant: "" }]);
+        const response = await handleSendMessage("finalize", true);
+
+        if (response && Array.isArray(response)) {
+            const detailedRecommendations = await Promise.all(
+                response.map(async (film) => await fetchFilmDetails(film.id))
+            );
+            setRecommendations(detailedRecommendations.filter(Boolean));
+        }
+    };
+
+    const RecommendationsTable = () => {
+        return (
+            <div className="recommendations-table">
+                <h2>Recommendations</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Film Title</th>
+                            <th>Release Date</th>
+                            <th>Popularity</th>
+                            <th>Average Vote</th>
+                            <th>Description</th>
+                            <th>Director</th>
+                            <th>Language</th>
+                            <th>Studio</th>
+                            <th>Poster</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {recommendations.map((film, index) => (
+                            <tr key={index}>
+                                <td>{film.title}</td>
+                                <td>{film.release_date}</td>
+                                <td>{film.popularity}</td>
+                                <td>{film.vote_average}</td>
+                                <td>{film.overview}</td>
+                                <td>{film.director}</td>
+                                <td>{film.language}</td>
+                                <td>{film.studio}</td>
+                                <td>
+                                    {film.poster ? (
+                                        <img src={film.poster} alt={`${film.title} poster`} />
+                                    ) : (
+                                        <div>No Poster Available</div>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    const ChatGroup = () => {
+        return (
+            <div className="chat-group">
+                {chatHistory.map((turn, index) => (
+                    <div key={index} className="chat-message">
+                        <div className="chat-user">User:</div>
+                        <div className="chat-content user-message">{turn.human}</div>
+                        <div className="chat-user">Assistant:</div>
+                        <div className="chat-content assistant-message">{turn.assistant}</div>
+                    </div>
+                ))}
+            </div>
+        );
     };
 
     if (isLoading) {
@@ -697,14 +816,7 @@ const App = () => {
             </div>
             {auth.isAuthenticated ? (
                 <div className="chat-container">
-                    <div className="chat-history">
-                        {chatHistory.map((turn, index) => (
-                            <div key={index} className="chat-turn">
-                                <div className="user-message">User: {turn.human}</div>
-                                <div className="assistant-message">Assistant: {turn.assistant}</div>
-                            </div>
-                        ))}
-                    </div>
+                    <ChatGroup />
                     <div className="chat-input">
                         <input
                             type="text"
@@ -716,16 +828,7 @@ const App = () => {
                         {!isFinalized && <button onClick={handleFinalize} disabled={loading}>Finalize</button>}
                     </div>
                     {chatResponse && <div className="chat-response">{chatResponse}</div>}
-                    {recommendations.length > 0 && (
-                        <div className="recommendations-list">
-                            <h2>Recommendations:</h2>
-                            <ul>
-                                {recommendations.map((rec, index) => (
-                                    <li key={index}>{rec}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                    {recommendations.length > 0 && <RecommendationsTable />}
                 </div>
             ) : (
                 <div className="chat-container">
