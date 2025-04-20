@@ -461,7 +461,8 @@ const App = () => {
     };
 
     const handleSendMessage = async (message = userMessage, isBackground = false) => {
-        if (!message.trim()) return;
+        // Ensure message is a string before trimming
+        if (typeof message !== 'string' || !message.trim()) return;
         setLoading(true);
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/bedrock`, {
