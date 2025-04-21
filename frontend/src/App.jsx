@@ -3,6 +3,7 @@ import { useAuth } from "react-oidc-context";
 import './App.css';
 import { fetchFilms } from "./apiService";
 import countryList from './assets/countryList';
+import popcornpalLogo from './assets/popcornpal-logo.png';
 
 const DEFAULT_COUNTRY = 'GB'; // UK as default
 
@@ -657,7 +658,7 @@ const App = () => {
     return (
         <><div className="container">
             <div className="header-container">
-                <img src={require('./assets/popcornpal-logo.png')} alt="PopcornPal Logo" style={{ height: '48px', marginRight: '1rem' }} />
+                <img src={popcornpalLogo} alt="PopcornPal Logo" style={{ height: '48px', marginRight: '1rem' }} />
                 <div className="header-controls">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <label htmlFor="country-select" style={{ fontWeight: 500 }}>Country:</label>
