@@ -584,15 +584,30 @@ const App = () => {
 
     const ChatGroup = () => {
         return (
-            <div className="chat-group">
-                {chatHistory.map((turn, index) => (
-                    <div key={index} className="chat-message">
-                        <div className="chat-user">User:</div>
-                        <div className="chat-content user-message">{turn.human}</div>
-                        <div className="chat-user">Assistant:</div>
-                        <div className="chat-content assistant-message">{turn.assistant}</div>
+            <div className="chat-group-bubbles">
+                {chatHistory.map((turn, index) => {
+                    // Ensure only strings are rendered
+                    const userMsg = typeof turn.human === 'string' ? turn.human : JSON.stringify(turn.human);
+                    const aiMsg = typeof turn.assistant === 'string' ? turn.assistant : JSON.stringify(turn.assistant);
+                    return (
+                        <React.Fragment key={index}>
+                            <div className="chat-bubble user-bubble">
+                                <span className="bubble-label">You</span>
+                                <span className="bubble-text">{userMsg}</span>
+                            </div>
+                            <div className="chat-bubble ai-bubble">
+                                <span className="bubble-label">Claude</span>
+                                <span className="bubble-text">{aiMsg}</span>
+                            </div>
+                        </React.Fragment>
+                    );
+                })}
+                {loading && (
+                    <div className="chat-bubble ai-bubble typing-indicator">
+                        <span className="bubble-label">Claude</span>
+                        <span className="bubble-text">Typing...</span>
                     </div>
-                ))}
+                )}
             </div>
         );
     };
