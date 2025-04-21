@@ -1,7 +1,10 @@
+# PopcornPal: Your Personalized Movie Guide
 
-# Film Recommender: Your Personalized Movie Guide
+<p align="center">
+  <img src="frontend/src/assets/popcornpal-logo.png" alt="PopcornPal Logo" height="100" />
+</p>
 
-Welcome to Film Recommender, a comprehensive web application designed to help you discover and manage your favorite films. This app leverages the power of AI, user authentication, and the extensive TMDB (The Movie Database) API to create a personalized movie-watching experience.
+Welcome to PopcornPal, a comprehensive web application designed to help you discover and manage your favorite films. This app leverages the power of AI, user authentication, and the extensive TMDB (The Movie Database) API to create a personalized movie-watching experience.
 
 ## Table of Contents
 
@@ -28,13 +31,13 @@ Welcome to Film Recommender, a comprehensive web application designed to help yo
 *   **User Authentication:** Securely log in to access personalized features.
 *   **Film Search:** Search for films using the extensive TMDB database.
 *   **Personal Film List:** Create, manage, and curate your own list of favorite films.
-*   **AI Chatbot:** Get personalized film recommendations from an AI-powered chatbot.
+*   **AI Chatbot:** Get personalized film recommendations from Claude through Bedrock.
 *   **Letterboxd Integration:** Import your film list directly from your Letterboxd account.
 *   **DynamoDB Integration:** Save and load your personal film list from AWS DynamoDB.
-* **Trending Films** Browse a selection of the most popular trending films.
-* **Genre and Year Filters:** Refine trending film results by selecting a specific genre or year.
-* **Dark and Light Mode:** Switch between dark and light themes.
-* **Film Details:** Access detailed information on a film, including cast, crew, and production details.
+*   **Trending Films:** Browse a selection of the most popular trending films.
+*   **Genre and Year Filters:** Refine trending film results by selecting a specific genre or year.
+*   **Dark and Light Mode:** Switch between dark and light themes.
+*   **Film Details:** Access detailed information on a film, including cast, crew, and production details.
 
 ## Frontend
 
@@ -43,8 +46,8 @@ The frontend is a modern React Single Page Application (SPA) built using:
 *   **React:** For creating dynamic and interactive user interfaces.
 *   **Vite:** For rapid development and efficient bundling.
 *   **Yarn:** For package management.
-* **OIDC:** For Secure user authentication.
-* **Github Actions:** Automates deployment to AWS S3 bucket.
+*   **OIDC:** For Secure user authentication.
+*   **Github Actions:** Automates deployment to AWS S3 bucket.
 
 ## Technologies Used
 
@@ -59,8 +62,8 @@ The frontend is a modern React Single Page Application (SPA) built using:
 *   **APIs:**
     *   TMDB API
     *   AWS Bedrock (for AI chatbot)
-* **Authentication:**
-    * OIDC
+*   **Authentication:**
+    *   OIDC
 
 ## Backend 
 
@@ -70,11 +73,11 @@ The backend is designed with scalability and efficiency in mind, utilizing the f
     *   Fetching film data from DynamoDB.
     *   Parsing Letterboxd feeds.
     *   Processing AI chatbot interactions.
-    * Processing user film list saving and loading.
+    *   Processing user film list saving and loading.
 *   **AWS DynamoDB:** A NoSQL database to store user film lists and other data.
-* **AWS Bedrock:** AI chatbot is powered by AWS Bedrock.
+*   **AWS Bedrock:** AI chatbot is powered by AWS Bedrock.
 
-The backend code is located in the `lambdas/` directory.
+The backend code is located in the `lambda/` directory.
 
 ## Getting Started
 
@@ -90,7 +93,7 @@ The backend code is located in the `lambdas/` directory.
 1.  Clone the repository: `git clone <repository_url>`
 2.  Navigate to the frontend directory: `cd frontend`
 3.  Install frontend dependencies: `yarn install`
-4. Install backend dependencies: `cd lambdas` then `pip install -r requirements.txt`
+4.  Install backend dependencies: `cd ../lambda/function` then `pip install -r requirements.txt`
 
 ### Running the App
 
@@ -108,13 +111,13 @@ The backend code is located in the `lambdas/` directory.
 
 *   Use the search bar to find films by title.
 *   Click on search results to add them to your film list.
-* Browse trending films, and use the genre and year filters to refine the results.
+*   Browse trending films, and use the genre and year filters to refine the results.
 
 ### Creating a Personal Film List
 
 *   Add films to your list by searching for them or selecting a trending film.
 *   Remove films from your list by clicking the 'X' icon.
-* The film list includes details such as film title, release date, popularity, vote average, description, director, language, studio, and whether the film was imported from Letterboxd.
+*   The film list includes details such as film title, release date, popularity, vote average, description, director, language, studio, and whether the film was imported from Letterboxd.
 
 ### AI Chatbot Recommendations
 
@@ -126,7 +129,7 @@ The backend code is located in the `lambdas/` directory.
 
 *   Enter your public Letterboxd username in the designated field.
 *   Click "Fetch Films" to load films from your Letterboxd feed.
-* Select film titles to add them to your list.
+*   Select film titles to add them to your list.
 
 ### Saving and Loading Film Lists
 
@@ -140,13 +143,12 @@ The backend code is located in the `lambdas/` directory.
 
 ## Notes
 
-* Fetching and recommending films from DynamoDB
-* Fetch and parse Letterboxd feeds
-
+*   Fetching and recommending films from DynamoDB
+*   Fetch and parse Letterboxd feeds
 *   This project is a personal development exercise aimed at improving React, web development, and AWS skills.
 *   This project is intended for educational and personal use.
 
 ## TMDB API
 
 *   This app utilizes the [TMDB API](https://www.themoviedb.org/) to provide film data and recommendations.
-This product uses the TMDB API but is not endorsed or certified by TMDB.
+  This product uses the TMDB API but is not endorsed or certified by TMDB.

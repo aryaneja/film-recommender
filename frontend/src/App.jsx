@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import './App.css';
 import { fetchFilms } from "./apiService";
+import countryList from './assets/countryList';
+
+const DEFAULT_COUNTRY = 'GB'; // UK as default
 
 const App = () => {
     const auth = useAuth();
@@ -31,6 +34,12 @@ const App = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [lastAddedFilmId, setLastAddedFilmId] = useState(null);
     const chatWindowRef = React.useRef(null);
+    const [selectedCountry, setSelectedCountry] = useState(() => {
+        // Try to get browser country, fallback to UK
+        const lang = navigator.language || navigator.userLanguage || '';
+        const match = lang.match(/-([A-Z]{2})$/i);
+        return match ? match[1].toUpperCase() : DEFAULT_COUNTRY;
+    });
 
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -648,8 +657,23 @@ const App = () => {
     return (
         <><div className="container">
             <div className="header-container">
-                <h1 className="header">Film Recommender</h1>
+                <img src={require('./assets/popcornpal-logo.png')} alt="PopcornPal Logo" style={{ height: '48px', marginRight: '1rem' }} />
                 <div className="header-controls">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <label htmlFor="country-select" style={{ fontWeight: 500 }}>Country:</label>
+                        <select
+                            id="country-select"
+                            value={selectedCountry}
+                            onChange={e => setSelectedCountry(e.target.value)}
+                            style={{ fontSize: '1rem', padding: '0.2rem 0.5rem', borderRadius: '6px' }}
+                        >
+                            {countryList.map(c => (
+                                <option key={c.code} value={c.code}>
+                                    {c.emoji} {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                     <button className="theme-toggle" onClick={toggleTheme}>
                         {theme === 'light' ? '🌙' : '☀️'} {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
                     </button>
