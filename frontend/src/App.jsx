@@ -30,6 +30,7 @@ const App = () => {
     const [chatResponse, setChatResponse] = useState('');
     const [recommendations, setRecommendations] = useState([]);
     const [isFinalized, setIsFinalized] = useState(false);
+    const [lastAddedFilmId, setLastAddedFilmId] = useState(null);
 
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -153,9 +154,16 @@ const App = () => {
 
     const addFilmToUserList = (newFilm) => {
         setUserFilmList(currentList => {
-            return [...currentList, newFilm]
+            // Prevent duplicates by film id
+            if (currentList.some(film => film.id === newFilm.id)) {
+                setError('This film is already in your list.');
+                return currentList;
+            }
+            setLastAddedFilmId(newFilm.id); // Track the last added film
+            return [...currentList, newFilm];
         });
     }
+
     const getFilmDetails = async (filmId) => {
         setLoading(true);
         let movieDetails;
@@ -611,20 +619,27 @@ const App = () => {
 
     const ChatGroup = () => {
         return (
-            <div className="chat-group-bubbles">
+            <div className="chat-group-bubbles chat-scrollable">
                 {chatHistory.map((turn, index) => {
-                    // Ensure only strings are rendered
-                    const userMsg = typeof turn.human === 'string' ? turn.human : JSON.stringify(turn.human);
-                    const aiMsg = typeof turn.assistant === 'string' ? turn.assistant : JSON.stringify(turn.assistant);
+                    // Render newlines as <br />
+                    const renderText = (text) =>
+                        typeof text === 'string'
+                            ? text.split(/\n|\\n/g).map((line, i) => (
+                                <React.Fragment key={i}>
+                                    {line}
+                                    {i < text.split(/\n|\\n/g).length - 1 && <br />}
+                                </React.Fragment>
+                            ))
+                            : JSON.stringify(text);
                     return (
                         <React.Fragment key={index}>
                             <div className="chat-bubble user-bubble">
                                 <span className="bubble-label">You</span>
-                                <span className="bubble-text">{userMsg}</span>
+                                <span className="bubble-text">{renderText(turn.human)}</span>
                             </div>
                             <div className="chat-bubble ai-bubble">
                                 <span className="bubble-label">Claude</span>
-                                <span className="bubble-text">{aiMsg}</span>
+                                <span className="bubble-text">{renderText(turn.assistant)}</span>
                             </div>
                         </React.Fragment>
                     );
@@ -638,6 +653,13 @@ const App = () => {
             </div>
         );
     };
+
+    useEffect(() => {
+        if (lastAddedFilmId !== null) {
+            const timeout = setTimeout(() => setLastAddedFilmId(null), 1200);
+            return () => clearTimeout(timeout);
+        }
+    }, [lastAddedFilmId]);
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -815,7 +837,11 @@ const App = () => {
                     </thead>
                     <tbody>
                         {sortedFilms().map((item, index) => (
-                            <tr key={index} className="listItem">
+                            <tr key={index} className={`listItem${item.id === lastAddedFilmId ? ' highlight-row' : ''}`} ref={el => {
+                                if (item.id === lastAddedFilmId && el) {
+                                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }}>
                                 <td>
                                     <a href={`https://www.themoviedb.org/movie/${item.id}`} target="_blank" rel="noopener noreferrer">{item.title}</a>
                                 </td>
@@ -881,7 +907,6 @@ const App = () => {
                         <button onClick={() => handleSendMessage(userMessage)} disabled={loading}>Send</button>
                         {!isFinalized && <button onClick={handleFinalize} disabled={loading}>Finalize</button>}
                     </div>
-                    {chatResponse && <div className="chat-response">{chatResponse}</div>}
                     {recommendations.length > 0 && <RecommendationsTable />}
                 </div>
             ) : (
@@ -899,14 +924,14 @@ const App = () => {
                     <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
                     <p>This product uses Claude by Anthropic for AI chat and recommendations, but is not endorsed or certified by Anthropic.</p>
                 </div>
-                <div className="tmdb-attribution">
+                <div className="tmdb-attribution"></div>
                     <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
                         <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="TMDB Logo" className="tmdb-logo" />
                     </a>
                 </div>
                 <div className="claude-attribution">
                     <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">
-                        <img src="https://assets-global.website-files.com/63e4e7c7c6c1b2b8c7e7e7e7/63e4e7c7c6c1b2b8c7e7e7e8_Anthropic%20Logo.svg" alt="Claude by Anthropic Logo" className="claude-logo" style={{height: '32px', marginTop: '8px'}} />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg" alt="Claude by Anthropic Logo" className="claude-logo" style={{height: '32px', marginTop: '8px'}} />
                     </a>
                 </div>
             </footer></>

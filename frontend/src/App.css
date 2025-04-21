@@ -378,6 +378,24 @@ td[style*="backgroundColor"] {
   border: 1px solid #ef4444;
 }
 
+/* Highlight row animation */
+.highlight-row {
+  animation: highlight-fade 1.2s ease;
+  background-color: #fef08a !important;
+}
+
+@keyframes highlight-fade {
+  0% {
+    background-color: #fef08a;
+  }
+  80% {
+    background-color: #fef08a;
+  }
+  100% {
+    background-color: inherit;
+  }
+}
+
 /* Table responsiveness */
 @media (max-width: 1024px) {
   td.description,
