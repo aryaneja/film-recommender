@@ -557,11 +557,11 @@ const App = () => {
         }
     };
 
-    const handleFinalize = async () => {
+    const handleFinalise = async () => {
         setIsFinalized(true);
-        setChatHistory([...chatHistory, { human: "finalize", assistant: "" }]);
+        setChatHistory([...chatHistory, { human: "finalise", assistant: "" }]);
         setError(null); // Clear previous errors
-        const response = await handleSendMessage("finalize", true);
+        const response = await handleSendMessage("finalise", true);
         if (response && Array.isArray(response)) {
             const detailedRecommendations = await Promise.all(
                 response.map(async (film) => await fetchFilmDetails(film.id))
@@ -905,7 +905,7 @@ const App = () => {
                             }}
                         />
                         <button onClick={() => handleSendMessage(userMessage)} disabled={loading}>Send</button>
-                        {!isFinalized && <button onClick={handleFinalize} disabled={loading}>Finalize</button>}
+                        {!isFinalized && <button onClick={handleFinalise} disabled={loading}>Finalise</button>}
                     </div>
                     {recommendations.length > 0 && <RecommendationsTable />}
                 </div>
