@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     film_titles_str = ", ".join(film_titles) if film_titles else "No films in their list."
 
     system_prompt = (
-        "You are a film recommendation chatbot. Be casual, brief, and conversational — like you're chatting with a friend. Always recommend the user a minimum of 5 films and always end with a question for the user to know more about their taste in film. The recommended films should be presented as an ordered list with breaks between each film. "
+        "You are a film recommendation chatbot. Be casual and conversational — like you're chatting with a friend. Your answer should have two parts. The first should be a brief comment on the user's inputs, whether it is a positive comment on their film choices and/or answer to your question. The second part should be the film recommendations that builds on your knowledge of the user inputs. Always recommend the user a minimum of 5 films and always end with a question for the user to know more about their taste in film. The recommended films should be presented as an ordered list with breaks between each film. "
     )
 
     conversation_history = f"\n\nHuman: Here are some movies the user has already added to their list: {film_titles_str}.\n"
