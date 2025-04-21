@@ -2,7 +2,6 @@ import json
 import boto3
 import os
 import hashlib
-import re
 
 bedrock_runtime = boto3.client(service_name='bedrock-runtime')
 
@@ -36,15 +35,7 @@ def lambda_handler(event, context):
         conversation_history += f"Human: {turn['human']}\nAssistant: {turn['assistant']}\n"
     conversation_history += f"Human: {user_message}\nAssistant:"
 
-    if "finalize" in user_message.lower():
-        # Stronger prompt: require TMDB id, title, and reason
-        full_prompt = (
-            f"\n\nHuman: {system_prompt}\n"
-            f"Based on the previous conversation:\n{conversation_history}\n"
-            f"Please provide a JSON array of 5 film recommendations. Each object must have: id (TMDB movie id), title, and a brief reason. Use emojis only. No extra text.\n\nAssistant:"
-        )
-    else:
-        full_prompt = f"\n\nHuman: {system_prompt}\n{conversation_history}"
+    full_prompt = f"\n\nHuman: {system_prompt}\n{conversation_history}"
 
     bedrock_body = json.dumps({
         "prompt": full_prompt,
@@ -78,32 +69,8 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': 'Claude model error'})
         }
 
-    if "finalize" in user_message.lower():
-        try:
-            # Extract the first JSON array from the completion_text
-            match = re.search(r'(\[.*?\])', completion_text, re.DOTALL)
-            if not match:
-                raise ValueError("No JSON array found in model output.")
-            json_str = match.group(1)
-            recommendations = json.loads(json_str)
-            # Validate recommendations: must be a list of dicts with 'id' and 'title'
-            if not (isinstance(recommendations, list) and all(isinstance(f, dict) and 'id' in f and 'title' in f for f in recommendations)):
-                raise ValueError("Recommendations must be a list of objects with 'id' and 'title'.")
-        except Exception as e:
-            print("Error decoding or validating JSON from Claude:", e)
-            return {
-                'statusCode': 500,
-                'headers': headers,
-                'body': json.dumps({'error': 'Model did not return valid recommendations. Please try again.'})
-            }
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': json.dumps(recommendations)
-        }
-    else:
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': json.dumps(completion_text)
-        }
+    return {
+        'statusCode': 200,
+        'headers': headers,
+        'body': json.dumps(completion_text)
+    }

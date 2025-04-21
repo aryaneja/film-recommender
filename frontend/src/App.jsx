@@ -29,7 +29,6 @@ const App = () => {
     const [userMessage, setUserMessage] = useState('');
     const [chatResponse, setChatResponse] = useState('');
     const [recommendations, setRecommendations] = useState([]);
-    const [isFinalized, setIsFinalized] = useState(false);
     const [lastAddedFilmId, setLastAddedFilmId] = useState(null);
     const chatWindowRef = React.useRef(null);
 
@@ -488,9 +487,9 @@ const App = () => {
         }
         setLoading(true);
         setError(null);
-        // Add user message to chatHistory immediately
         if (!isBackground) {
             setChatHistory(prev => [...prev, { human: msg, assistant: '' }]);
+            setUserMessage(''); // Clear the textbox immediately after sending
         }
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/bedrock`, {
@@ -508,7 +507,6 @@ const App = () => {
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 setError(errorData.error || 'Failed to send message.');
-                // Remove the last user message if error
                 if (!isBackground) {
                     setChatHistory(prev => prev.slice(0, -1));
                 }
@@ -522,14 +520,10 @@ const App = () => {
                 }
                 return;
             }
-            if (isFinalized && !isBackground) {
-                setRecommendations(data);
-                setChatResponse("");
-            } else if (!isBackground) {
+            if (!isBackground) {
                 setChatResponse(data);
             }
             if (!isBackground) {
-                // Update the last chatHistory entry with the assistant's response
                 setChatHistory(prev => {
                     const updated = [...prev];
                     updated[updated.length - 1].assistant = data;
@@ -543,9 +537,6 @@ const App = () => {
                     return updatedHistory;
                 });
             }
-            if (!isBackground) {
-                setUserMessage('');
-            }
             return data;
         } catch (error) {
             setError("Failed to send message");
@@ -555,25 +546,6 @@ const App = () => {
             console.error('Error sending message:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleFinalise = async () => {
-        setError(null); // Clear previous errors
-        setIsFinalized(true);
-        // Add the finalise message to chatHistory and get the response
-        const updatedHistory = [...chatHistory, { human: "finalise", assistant: "" }];
-        setChatHistory(updatedHistory);
-        const response = await handleSendMessage("finalise", true);
-        if (response && Array.isArray(response)) {
-            // Fetch details for each recommended film
-            const detailedRecommendations = await Promise.all(
-                response.map(async (film) => await fetchFilmDetails(film.id))
-            );
-            setRecommendations(detailedRecommendations.filter(Boolean));
-        } else if (response && response.error) {
-            setRecommendations([]);
-            setError(response.error);
         }
     };
 
@@ -630,7 +602,6 @@ const App = () => {
         return (
             <div className="chat-group-bubbles chat-scrollable" ref={chatWindowRef}>
                 {chatHistory.map((turn, index) => {
-                    // Render newlines as <br />
                     const renderText = (text) =>
                         typeof text === 'string'
                             ? text.split(/\n|\\n/g).map((line, i) => (
@@ -914,7 +885,6 @@ const App = () => {
                             }}
                         />
                         <button onClick={() => handleSendMessage(userMessage)} disabled={loading}>Send</button>
-                        {!isFinalized && <button onClick={handleFinalise} disabled={loading}>Finalise</button>}
                     </div>
                     {recommendations.length > 0 && <RecommendationsTable />}
                 </div>

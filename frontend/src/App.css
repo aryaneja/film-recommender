@@ -725,7 +725,7 @@ button:hover {
 }
 
 .chat-group-bubbles.chat-scrollable {
-  max-height: 350px;
+  max-height: 1000px;
   overflow-y: auto;
   border-radius: 1rem;
   background: #f8fafc;
