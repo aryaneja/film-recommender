@@ -31,6 +31,7 @@ const App = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [isFinalized, setIsFinalized] = useState(false);
     const [lastAddedFilmId, setLastAddedFilmId] = useState(null);
+    const chatWindowRef = React.useRef(null);
 
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -558,11 +559,14 @@ const App = () => {
     };
 
     const handleFinalise = async () => {
-        setIsFinalized(true);
-        setChatHistory([...chatHistory, { human: "finalise", assistant: "" }]);
         setError(null); // Clear previous errors
+        setIsFinalized(true);
+        // Add the finalise message to chatHistory and get the response
+        const updatedHistory = [...chatHistory, { human: "finalise", assistant: "" }];
+        setChatHistory(updatedHistory);
         const response = await handleSendMessage("finalise", true);
         if (response && Array.isArray(response)) {
+            // Fetch details for each recommended film
             const detailedRecommendations = await Promise.all(
                 response.map(async (film) => await fetchFilmDetails(film.id))
             );
@@ -618,8 +622,13 @@ const App = () => {
     };
 
     const ChatGroup = () => {
+        React.useEffect(() => {
+            if (chatWindowRef.current) {
+                chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+            }
+        }, [chatHistory, loading]);
         return (
-            <div className="chat-group-bubbles chat-scrollable">
+            <div className="chat-group-bubbles chat-scrollable" ref={chatWindowRef}>
                 {chatHistory.map((turn, index) => {
                     // Render newlines as <br />
                     const renderText = (text) =>
