@@ -461,7 +461,12 @@ const App = () => {
     };
 
     const handleSendMessage = async (message = userMessage, isBackground = false) => {
-        if (typeof message !== 'string' || !message.trim()) return;
+        // Always convert message to string and trim
+        const msg = String(message ?? '').trim();
+        if (!msg) {
+            setError('Please enter a message to send.');
+            return;
+        }
         setLoading(true);
         setError(null); // Clear previous errors
         try {
@@ -472,7 +477,7 @@ const App = () => {
                     'Authorization': `Bearer ${auth.user?.id_token}`,
                 },
                 body: JSON.stringify({
-                    userMessage: message,
+                    userMessage: msg,
                     chatHistory: chatHistory,
                     filmList: userFilmList
                 }),
@@ -496,7 +501,7 @@ const App = () => {
                 setChatResponse(data);
             }
             if (!isBackground) {
-                setChatHistory([...chatHistory, { human: message, assistant: data }]);
+                setChatHistory([...chatHistory, { human: msg, assistant: data }]);
             }
             if (isBackground) {
                 setChatHistory((prevHistory) => {
