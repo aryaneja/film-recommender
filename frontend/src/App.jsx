@@ -2,10 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 import './App.css';
 import { fetchFilms } from "./apiService";
-import countryList from './assets/countryList';
+import githubMark from './assets/github-mark.png'
 import popcornpalLogo from './assets/popcornpal-logo.png';
-
-const DEFAULT_COUNTRY = 'GB'; // UK as default
 
 const App = () => {
     const [toast, setToast] = useState(null);
@@ -42,11 +40,7 @@ const App = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [lastAddedFilmId, setLastAddedFilmId] = useState(null);
     const chatWindowRef = React.useRef(null);
-    const [selectedCountry, setSelectedCountry] = useState(() => {
-        const lang = navigator.language || navigator.userLanguage || '';
-        const match = lang.match(/-([A-Z]{2})$/i);
-        return match ? match[1].toUpperCase() : DEFAULT_COUNTRY;
-    });
+    ;
 
     useEffect(() => {
         localStorage.setItem('userFilmList', JSON.stringify(userFilmList));
@@ -167,7 +161,7 @@ const App = () => {
     const addFilmToUserList = (newFilm) => {
         setUserFilmList(currentList => {
             if (currentList.some(film => film.id === newFilm.id)) {
-                setError('This film is already in your list.');
+                showToast(<span style={{ color: 'red' }}>This film is already in your list.</span>);
                 return currentList;
             }
             setLastAddedFilmId(newFilm.id);
@@ -181,6 +175,7 @@ const App = () => {
         let movieDetails;
         let director;
         let studio;
+        let watchProviders = null;
         try {
             const response = await fetch(`https://api.themoviedb.org/3/movie/${filmId}?language=en-US&append_to_response=credits`, {
                 method: 'GET',
@@ -218,6 +213,7 @@ const App = () => {
                 director: director,
                 language: movieDetails.original_language,
                 studio: studio,
+                watchProviders: watchProviders
             };
             addFilmToUserList(newFilm);
 
@@ -654,16 +650,25 @@ const App = () => {
                     </button>
                 </div>
                 <div className="film-card-meta">
-                    <span>{film.release_date}</span>
+                   {film.release_date && (
+                                  <span>{new Date(film.release_date).toLocaleDateString()}</span>
+                            )}
+                            <br></br>
                     <span className="film-card-vote" style={{ backgroundColor: getVoteColor(film.vote_average), color: 'black' }}>{film.vote_average}</span>
                 </div>
-                <div className="film-card-details">
-                    <span>Director: {film.director}</span>
-                    <span>Studio: {film.studio}</span>
+                <div className="film-card-details" >
+                <div className="film-card-detail-row">
+                    <span><b>Director: </b></span>
+                    <span>{film.director}</span>
                 </div>
-                <div className="film-card-overview">{film.overview}</div>
+                 <div className="film-card-detail-row">
+                    <span><b>Studio: </b></span>
+                    <span>{film.studio}</span>
+                </div>
             </div>
-        </div>
+                <div className="film-card-overview">{film.overview}</div>
+            
+        </div></div>
     );
 
     useEffect(() => {
@@ -680,220 +685,208 @@ const App = () => {
     return (
         <>
             {toast && <div className="toast">{toast}</div>}
-            <header className="header-container">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <img src={popcornpalLogo} alt="PopcornPal Logo" style={{ height: '72px' }} />
-                </div>
-                <div className="header-controls">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <label htmlFor="country-select" style={{ fontWeight: 500 }}>Country:</label>
-                        <select
-                            id="country-select"
-                            value={selectedCountry}
-                            onChange={e => setSelectedCountry(e.target.value)}
-                            style={{ fontSize: '1rem', padding: '0.2rem 0.5rem', borderRadius: '6px' }}
-                        >
-                            {countryList.map(c => (
-                                <option key={c.code} value={c.code}>
-                                    {c.emoji} {c.name}
-                                </option>
-                            ))}
-                        </select>
-                        <button className="theme-toggle" onClick={toggleTheme}>
-                            {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
-                        </button>
+            <div className="app-wrapper">
+                <header className="header-container">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <a href="film.aryaneja.com"><img src={popcornpalLogo} alt="PopcornPal Logo" style={{ height: '90px' }} />  </a>
                     </div>
-                    {auth.isAuthenticated ? (
-                        <div className="user-info">
-                            <span>Hello: {auth.user?.profile.email}</span>
-                            <button className="auth-button" onClick={() => auth.removeUser()}>Sign out</button>
+                    <div className="tagline"><h3><b>Smart picks, Less scrolling</b></h3></div>
+
+                    <div className="header-controls">
+                        <a href="https://github.com/aryaneja/film-recommender" target="_blank" rel="noopener noreferrer" style={{textDecoration: 'none', color: 'inherit'}}>
+                           <img src={githubMark} alt="Github Repo" style={{width: '60px', height: '60px'}}/>
+                        </a>
+                        {auth.isAuthenticated ? (
+                            
+                            <div className="user-info">
+                                <span>Hello: {auth.user?.profile.email}</span>
+                                <button className="auth-button" onClick={() => auth.removeUser()}>Sign out</button>
+                            </div>
+                        ) : (
+                            <button className="auth-button" onClick={() => auth.signinRedirect()}>Sign in</button>
+                        )}
+                    </div>
+                </header>
+                <div className="container">
+                    <div className="trending-films">
+                        <div className="trending-films-header">
+                            <h2>search for a film</h2>
+                            <div className="filter-container">
+                                <input
+                                    className="input"
+                                    placeholder="Enter a film name"
+                                    value={film}
+                                    onChange={(e) => setFilm(e.target.value)} />
+                            </div>
                         </div>
-                    ) : (
-                        <button className="auth-button" onClick={() => auth.signinRedirect()}>Sign in</button>
+                        {film.trim() && searchResults.length > 0 && (
+                            <ul className="recommendations">
+                                {searchResults.map((item, index) => {
+                                    const releaseYear = item.release_date ? item.release_date.substring(0, 4) : "N/A";
+                                    return (
+                                        <li key={item.id} onClick={() => getFilmDetails(item.id)}>
+                                            {item.title} [{releaseYear}]
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+
+                    {trendingFilms.length > 0 && (
+                        <div className="trending-films">
+                            <div className="trending-films-header">
+                                <h2>
+                                    {`or choose a trending film ${selectedGenre
+                                        ? `in ${genres.find((g) => g.id === selectedGenre)?.name}`
+                                        : "across all genres"} ${selectedYear
+                                            ? `released in ${selectedYear}`
+                                            : "across all years"}`}
+                                </h2>
+                                <div className="filter-container">
+                                    <select
+                                        value={selectedGenre ?? ""}
+                                        onChange={(e) => setSelectedGenre(
+                                            e.target.value === ""
+                                                ? null
+                                                : parseInt(e.target.value)
+                                        )}
+                                    >
+                                        <option value="">All Genres</option>
+                                        {genres.map((genre) => (
+                                            <option key={genre.id} value={genre.id}>
+                                                {genre.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={selectedYear ?? ""}
+                                        onChange={(e) => setSelectedYear(
+                                            e.target.value === ""
+                                                ? null
+                                                : parseInt(e.target.value)
+                                        )}
+                                    >
+                                        <option value="">All Years</option>
+                                        {Array.from(
+                                            { length: currentYear - 1900 + 1 },
+                                            (_, i) => currentYear - i
+                                        ).map((year) => (
+                                            <option key={year} value={year}>
+                                                {year}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="trending-films-posters">
+                                {trendingFilms.map((item) => (
+                                    <div key={item.id} className="trending-film-item">
+                                        {item.poster_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
+                                                alt={item.title}
+                                                onClick={() => getFilmDetails(item.id)} />
+                                        ) : (
+                                            <div className="no-poster" onClick={() => getFilmDetails(item.id)}>
+                                                No Poster Available
+                                            </div>
+                                        )}
+                                        <div className="trending-film-info">
+                                            <span>{item.title}</span>
+                                            <span>{item.release_date ? item.release_date.substring(0, 4) : 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
-                </div>
-            </header>
-            <div className="container">
-                <div className="trending-films">
-                    <div className="trending-films-header">
-                        <h2>search for a film</h2>
-                        <div className="filter-container">
-                            <input
-                                className="input"
-                                placeholder="Enter a film name"
-                                value={film}
-                                onChange={(e) => setFilm(e.target.value)} />
+
+                    <div className="trending-films">
+                        <div className="trending-films-header">
+                            <h2>or fetch films from your letterboxd feed</h2>
+                            <div className="filter-container">
+                                <input
+                                    type="text"
+                                    placeholder="enter public letterboxd username"
+                                    value={customApiUsername}
+                                    onChange={(e) => setCustomApiUsername(e.target.value)} />
+                                <button onClick={handleFetchCustomApiFilms} disabled={customApiLoading}>
+                                    {customApiLoading ? "Loading..." : "Fetch Films"}
+                                </button>
+                                <button onClick={() => setCustomApiFilms([])} disabled={customApiLoading || customApiFilms.length === 0}>
+                                    Clear
+                                </button>
+                            </div>
+                            {customApiError && <p className="error">{customApiError}</p>}
                         </div>
-                    </div>
-                    {film.trim() && searchResults.length > 0 && (
                         <ul className="recommendations">
-                            {searchResults.map((item, index) => {
-                                const releaseYear = item.release_date ? item.release_date.substring(0, 4) : "N/A";
+                            {customApiFilms.map((film, index) => {
+                                const releaseYear = film.details?.release_date ? film.details.release_date.substring(0, 4) : "N/A";
                                 return (
-                                    <li key={item.id} onClick={() => getFilmDetails(item.id)}>
-                                        {item.title} [{releaseYear}]
+                                    <li key={index} onClick={() => film.available && addFilmFromCustomApi(film.details)}>
+                                        {film.title} [{releaseYear}] {film.available ? "" : "Cannot Find on TMDB"}
                                     </li>
                                 );
                             })}
                         </ul>
+                    </div>
+
+                    <h2>your film list</h2>
+                    {error && <div className="error">{error}</div>}
+                    <div className="film-list-actions">
+                        <button onClick={saveFilmListToDynamoDB}>Save Film List</button>
+                        <button onClick={loadFilmListFromDynamoDB}>Load Film List</button>
+                    </div>
+                    <div className="film-list-grid">
+                        {sortedFilms().map((item, index) => (
+                            <FilmCard key={item.id} film={item} onRemove={removeFilm} />
+                        ))}
+                    </div>
+                    {auth.isAuthenticated ? (
+                        <div className="chat-container">
+                            <ChatGroup />
+                            <div className="chat-input">
+                                <input
+                                    type="text"
+                                    value={userMessage}
+                                    onChange={(e) => setUserMessage(e.target.value)}
+                                    placeholder="Type your message here..."
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSendMessage(userMessage);
+                                    }}
+                                />
+                                <button onClick={() => handleSendMessage(userMessage)} disabled={loading}>Send</button>
+                            </div>
+                            {recommendations.length > 0 && <RecommendationsTable />}
+                        </div>
+                    ) : (
+                        <div className="chat-container">
+                            <p>Please sign in to use the AI chatbot and get personalized recommendations.</p>
+                        </div>
                     )}
                 </div>
-
-                {trendingFilms.length > 0 && (
-                    <div className="trending-films">
-                        <div className="trending-films-header">
-                            <h2>
-                                {`or choose a trending film ${selectedGenre
-                                    ? `in ${genres.find((g) => g.id === selectedGenre)?.name}`
-                                    : "across all genres"} ${selectedYear
-                                        ? `released in ${selectedYear}`
-                                        : "across all years"}`}
-                            </h2>
-                            <div className="filter-container">
-                                <select
-                                    value={selectedGenre ?? ""}
-                                    onChange={(e) => setSelectedGenre(
-                                        e.target.value === ""
-                                            ? null
-                                            : parseInt(e.target.value)
-                                    )}
-                                >
-                                    <option value="">All Genres</option>
-                                    {genres.map((genre) => (
-                                        <option key={genre.id} value={genre.id}>
-                                            {genre.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    value={selectedYear ?? ""}
-                                    onChange={(e) => setSelectedYear(
-                                        e.target.value === ""
-                                            ? null
-                                            : parseInt(e.target.value)
-                                    )}
-                                >
-                                    <option value="">All Years</option>
-                                    {Array.from(
-                                        { length: currentYear - 1900 + 1 },
-                                        (_, i) => currentYear - i
-                                    ).map((year) => (
-                                        <option key={year} value={year}>
-                                            {year}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="trending-films-posters">
-                            {trendingFilms.map((item) => (
-                                <div key={item.id} className="trending-film-item">
-                                    {item.poster_path ? (
-                                        <img
-                                            src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
-                                            alt={item.title}
-                                            onClick={() => getFilmDetails(item.id)} />
-                                    ) : (
-                                        <div className="no-poster" onClick={() => getFilmDetails(item.id)}>
-                                            No Poster Available
-                                        </div>
-                                    )}
-                                    <div className="trending-film-info">
-                                        <span>{item.title}</span>
-                                        <span>{item.release_date ? item.release_date.substring(0, 4) : 'N/A'}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                <footer className="app-footer">
+                    <div className="about-section">
+                        <h3>About</h3>
+                        <p>
+                            This project is a personal development exercise aimed at improving my React and web development skills.
+                            It utilizes the TMDB API and Claude (Anthropic) for film data and AI-powered recommendations.
+                        </p>
+                        <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+                        <p>This product uses Claude by Anthropic for AI chat and recommendations, but is not endorsed or certified by Anthropic.</p>
                     </div>
-                )}
-
-                <div className="trending-films">
-                    <div className="trending-films-header">
-                        <h2>or fetch films from your letterboxd feed</h2>
-                        <div className="filter-container">
-                            <input
-                                type="text"
-                                placeholder="enter public letterboxd username"
-                                value={customApiUsername}
-                                onChange={(e) => setCustomApiUsername(e.target.value)} />
-                            <button onClick={handleFetchCustomApiFilms} disabled={customApiLoading}>
-                                {customApiLoading ? "Loading..." : "Fetch Films"}
-                            </button>
-                            <button onClick={() => setCustomApiFilms([])} disabled={customApiLoading || customApiFilms.length === 0}>
-                                Clear
-                            </button>
-                        </div>
-                        {customApiError && <p className="error">{customApiError}</p>}
+                    <div className="attribution">
+                        <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
+                            <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="TMDB Logo" className="tmdb-logo" />
+                        </a>
+                        <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg" alt="Claude by Anthropic Logo" className="claude-logo" style={{ height: '32px', marginTop: '8px' }} />
+                        </a>
                     </div>
-                    <ul className="recommendations">
-                        {customApiFilms.map((film, index) => {
-                            const releaseYear = film.details?.release_date ? film.details.release_date.substring(0, 4) : "N/A";
-                            return (
-                                <li key={index} onClick={() => film.available && addFilmFromCustomApi(film.details)}>
-                                    {film.title} [{releaseYear}] {film.available ? "" : "Cannot Find on TMDB"}
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
-
-                <h2>your film list</h2>
-                {error && <div className="error">{error}</div>}
-                <div className="film-list-actions">
-                    <button onClick={saveFilmListToDynamoDB}>Save Film List</button>
-                    <button onClick={loadFilmListFromDynamoDB}>Load Film List</button>
-                </div>
-                <div className="film-list-grid">
-                    {sortedFilms().map((item, index) => (
-                        <FilmCard key={item.id} film={item} onRemove={removeFilm} />
-                    ))}
-                </div>
-                {auth.isAuthenticated ? (
-                    <div className="chat-container">
-                        <ChatGroup />
-                        <div className="chat-input">
-                            <input
-                                type="text"
-                                value={userMessage}
-                                onChange={(e) => setUserMessage(e.target.value)}
-                                placeholder="Type your message here..."
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSendMessage(userMessage);
-                                }}
-                            />
-                            <button onClick={() => handleSendMessage(userMessage)} disabled={loading}>Send</button>
-                        </div>
-                        {recommendations.length > 0 && <RecommendationsTable />}
-                    </div>
-                ) : (
-                    <div className="chat-container">
-                        <p>Please sign in to use the AI chatbot and get personalized recommendations.</p>
-                    </div>
-                )}
+                </footer>
             </div>
-            <footer className="app-footer">
-                <div className="about-section">
-                    <h3>About</h3>
-                    <p>
-                        This project is a personal development exercise aimed at improving my React and web development skills.
-                        It utilizes the TMDB API and Claude (Anthropic) for film data and AI-powered recommendations.
-                    </p>
-                    <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
-                    <p>This product uses Claude by Anthropic for AI chat and recommendations, but is not endorsed or certified by Anthropic.</p>
-                </div>
-                <div className="tmdb-attribution">
-                    <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
-                        <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="TMDB Logo" className="tmdb-logo" />
-                    </a>
-                </div>
-                <div className="claude-attribution">
-                    <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg" alt="Claude by Anthropic Logo" className="claude-logo" style={{ height: '32px', marginTop: '8px' }} />
-                    </a>
-                </div>
-            </footer>
         </>
     );
 };

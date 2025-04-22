@@ -1,30 +1,84 @@
-:root {
-  font-family: 'Inter', sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  --primary-color: #C69C0B;
-  --primary-hover: #A17F09;
-  --secondary-color: #4E342E;
-  --accent-color: #E6D8A2;
 
-  --text-primary: #1C1C1C;
-  --text-secondary: #555555;
+
+:root {
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --secondary-color: #64748b;
+  --accent-color: #dbeafe;
+
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
   --text-light: #ffffff;
 
-  --background-light: #F9F9F9;
-  --background-dark: #f8db8d;
-  --background-accent: #FFFFFF;
+  --background-light: #f8fafc;
+  --background-dark: #e2e8f0;
+  --background-accent: #f1f5f9;
 
-  --card-bg: #FFFFFF;
-  --border-color: #E0E0E0;
+  --card-bg: #ffffff;
+  --border-color: #cbd5e1;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --radius-sm: 6px;
   --radius-md: 10px;
-  --border-footer: #E0E0E0;
+}
 
+[data-theme="dark"] {
+  --primary-color: #60a5fa;
+  --primary-hover: #3b82f6;
+  --secondary-color: #94a3b8;
+  --accent-color: #1e3a8a;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-light: #ffffff;
+
+  --background-light: #0f172a;
+  --background-dark: #1e293b;
+  --background-accent: #334155;
+
+  --card-bg: #1e293b;
+  --border-color: #475569;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+
+html[data-theme='dark'] {
+  --background-light: #121212;
+  --background-accent: #292929;
+  --text-primary: white;
+}
+
+
+.theme-toggle {
+  position: static;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  background-color: var(--background-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background-color: var(--background-accent);
+}
+
+.theme-toggle svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+  fill: currentColor;
 }
 
 html {
@@ -33,7 +87,7 @@ html {
 
 body {  
   color: var(--text-primary);
-  background: var(--background-light);
+  background-color: var(--background-light);
   line-height: 1.6;
   font-size: 16px;
   min-height: 100vh;
@@ -42,25 +96,8 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  color: var(--text-primary);
-
 }
 
-button {
-  background-color: var(--primary-color);
-  color: var(--text-light);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-button:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-}
 
 .container {
   flex-grow: 1;
@@ -77,7 +114,6 @@ button:hover {
 .app-wrapper {
   min-height: 100vh;
   max-width: 1200px;
-  background-color: var(--background-light);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -85,7 +121,7 @@ button:hover {
     display: flex;
     background-color: var(--background-light);
     display: flex;
-    color: var(--background-light);
+    color: var(--text-primary);
   }
 }
 
@@ -98,19 +134,9 @@ button:hover {
   align-items: center;
   margin-bottom: 2rem;
   padding: 1rem;
-  background-color: var(--background-dark);
+  background-color: var(--background-light);
   text-align: center;
   box-shadow: var(--shadow-sm);
-  border-radius: var(--radius-md);
-}
-
-.app-footer {  
-  background: var(--background-dark);
-  border: 1px solid var(--border-footer);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: 1rem;  
-  width: 100%;
 }
 
 
@@ -141,7 +167,6 @@ button:hover {
   }
 }
 
-
 .header {
   color: var(--primary-color);
   margin-bottom: 0;
@@ -165,10 +190,6 @@ h2 {
   border-radius: var(--radius-sm);
   font-size: 1rem;
   transition: all 0.2s ease;
-  align-items: center;
-  background-color: var(--background-light);
-  color: var(--text-primary);
-
 }
 
 .input:focus {
@@ -185,15 +206,13 @@ h2 {
 }
 
 .recommendations li {
-  padding: 0.6rem 1rem;
-  margin-bottom: 0.5rem;
-  background-color: var(--card-bg);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.25rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-  transition: background-color 0.2s ease, transform 0.2s ease;
   cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--background-light);
 }
 
 .recommendations li:hover {
@@ -473,7 +492,13 @@ td[style*="backgroundColor"] {
   .container {
     padding: 0.75rem;
   }
-
+  
+  .theme-toggle {
+    position: static;
+    margin: 0 0 1rem 0;
+    width: auto;
+    display: inline-flex;
+  }
   
   .header-container {
     flex-direction: column;
@@ -533,6 +558,16 @@ td[style*="backgroundColor"] {
     padding: 0.5rem;
   }
   
+  .theme-toggle {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .theme-toggle svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
   .header-container {
     padding: 0.5rem;
   }
@@ -583,7 +618,7 @@ td a:hover {
 }
 
 button {
-  background-color: varprimary-color;
+  background-color: var(--primary-color);
   color: var(--text-light);
   padding: 0.4rem 0.8rem;
   border-radius: var(--radius-sm);
@@ -620,6 +655,24 @@ button:hover {
   font-weight: 500;
 }
 
+.auth-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  text-align: center;
+}
+
+.auth-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
 .header-controls {
   display: flex;
   align-items: center;
@@ -640,6 +693,11 @@ button:hover {
     gap: 0.5rem;
   }
 
+  .theme-toggle {
+    width: auto;
+    min-width: 120px;
+  }
+
   .auth-button {
     width: auto;
     min-width: 100px;
@@ -651,6 +709,12 @@ button:hover {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .theme-toggle {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    min-width: 110px;
   }
 
   .auth-button {
@@ -921,7 +985,7 @@ button:hover {
   transform: translateX(-50%);
   background: #000000;
   color: #fcfcfc;
-  padding: 1.2rem 2.5rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 1.2rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   font-size: 1rem;
@@ -933,7 +997,6 @@ button:hover {
   from { opacity: 0; transform: translateY(10px);}
   to { opacity: 1; transform: translateY(0);}
 }
-
 .chat-bubble {
   animation: chat-fade-in 0.4s;
 }
@@ -971,32 +1034,10 @@ button:hover {
   }
 }
 
-li {
-  padding: 0.6rem 1rem;
-  margin-bottom: 0.5rem;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  cursor: pointer;
-}
-
-li:hover {
-  background-color: var(--background-accent);
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
 [data-theme="dark"] body,
 [data-theme="dark"] html,
 [data-theme="dark"] #root,
 [data-theme="dark"] .app-wrapper,
 [data-theme="dark"] .container {
-  background-color: var(--background-dark) !important;
-}
-
-body {
-  background: #F9F9F9 !important;
+  background-color: var(--background-light) !important;
 }
