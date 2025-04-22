@@ -8,6 +8,13 @@ import popcornpalLogo from './assets/popcornpal-logo.png';
 const DEFAULT_COUNTRY = 'GB'; // UK as default
 
 const App = () => {
+    const [toast, setToast] = useState(null);
+
+    const showToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2000);
+    };
+
     const auth = useAuth();
     const [film, setFilm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -36,7 +43,6 @@ const App = () => {
     const [lastAddedFilmId, setLastAddedFilmId] = useState(null);
     const chatWindowRef = React.useRef(null);
     const [selectedCountry, setSelectedCountry] = useState(() => {
-        // Try to get browser country, fallback to UK
         const lang = navigator.language || navigator.userLanguage || '';
         const match = lang.match(/-([A-Z]{2})$/i);
         return match ? match[1].toUpperCase() : DEFAULT_COUNTRY;
@@ -52,11 +58,7 @@ const App = () => {
     }, [theme]);
 
     useEffect(() => {
-        if (auth.isLoading) {
-            setIsLoading(true);
-        } else {
-            setIsLoading(false);
-        }
+        setIsLoading(auth.isLoading);
     }, [auth.isLoading]);
 
     const getVoteColor = (voteAverage) => {
@@ -164,15 +166,15 @@ const App = () => {
 
     const addFilmToUserList = (newFilm) => {
         setUserFilmList(currentList => {
-            // Prevent duplicates by film id
             if (currentList.some(film => film.id === newFilm.id)) {
                 setError('This film is already in your list.');
                 return currentList;
             }
-            setLastAddedFilmId(newFilm.id); // Track the last added film
+            setLastAddedFilmId(newFilm.id);
+            showToast(`Added "${newFilm.title}" to your list!`);
             return [...currentList, newFilm];
         });
-    }
+    };
 
     const getFilmDetails = async (filmId) => {
         setLoading(true);
@@ -217,7 +219,7 @@ const App = () => {
                 language: movieDetails.original_language,
                 studio: studio,
             };
-            addFilmToUserList(newFilm)
+            addFilmToUserList(newFilm);
 
         } catch (e) {
             setError('Failed to fetch movie details. Please try again.');
@@ -264,8 +266,10 @@ const App = () => {
     };
 
     const removeFilm = (filmId) => {
+        const film = userFilmList.find(f => f.id === filmId);
         const updatedFilmList = userFilmList.filter((film) => film.id !== filmId);
         setUserFilmList(updatedFilmList);
+        if (film) showToast(`Removed "${film.title}" from your list.`);
     };
 
     const toggleTheme = () => {
@@ -277,8 +281,6 @@ const App = () => {
         setCustomApiError(null);
         try {
             const data = await fetchFilms(customApiUsername);
-            console.log("Full API Response:", data);
-
             if (data && data.body) {
                 const parsedBody = JSON.parse(data.body);
                 if (Array.isArray(parsedBody)) {
@@ -326,23 +328,19 @@ const App = () => {
                                     return { title: filmName, available: false };
                                 }
                             } catch (error) {
-                                console.error(`Error processing film: ${filmName}`, error);
                                 return { title: filmName, available: false };
                             }
                         })
                     );
                     setCustomApiFilms(updatedFilms);
                 } else {
-                    console.error("Unexpected API response format:", parsedBody);
                     throw new Error("Unexpected API response format");
                 }
             } else {
-                console.error("Invalid API response structure:", data);
                 throw new Error("Invalid API response structure");
             }
         } catch (err) {
             setCustomApiError("Failed to fetch films from custom API. Please try again.");
-            console.error("Error fetching films from custom API:", err);
         } finally {
             setCustomApiLoading(false);
         }
@@ -379,7 +377,6 @@ const App = () => {
 
             addFilmToUserList(updatedFilmDetails);
         } catch (error) {
-            console.error("Error fetching additional details for film:", error);
             setError("Failed to fetch additional details. Please try again.");
         } finally {
             setLoading(false);
@@ -388,10 +385,9 @@ const App = () => {
 
     const saveFilmListToDynamoDB = async () => {
         if (!auth.isAuthenticated) {
-            alert("You need to be signed in to save your film list.");
+            showToast("You need to be signed in to save your film list.");
             return;
         }
-
         const userEmail = auth.user?.profile.email;
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/dynamodb`, {
@@ -407,16 +403,15 @@ const App = () => {
                 throw new Error("Failed to save film list.");
             }
 
-            alert("Film list saved successfully!");
+            showToast("Film list saved successfully!");
         } catch (error) {
-            console.error("Error saving film list:", error);
-            alert("Failed to save film list. Please try again.");
+            showToast("Failed to save film list. Please try again.");
         }
     };
 
     const loadFilmListFromDynamoDB = async () => {
         if (!auth.isAuthenticated) {
-            alert("You need to be signed in to load your film list.");
+            showToast("You need to be signed in to load your film list.");
             return;
         }
 
@@ -435,10 +430,9 @@ const App = () => {
 
             const data = await response.json();
             setUserFilmList(data.filmList || []);
-            alert("Film list loaded successfully!");
+            showToast("Film list loaded successfully!");
         } catch (error) {
-            console.error("Error loading film list:", error);
-            alert("Failed to load film list. Please try again.");
+            showToast("Failed to load film list. Please try again.");
         }
     };
 
@@ -473,7 +467,6 @@ const App = () => {
                 studio,
             };
         } catch (error) {
-            console.error('Error fetching film details:', error);
             return null;
         }
     };
@@ -499,7 +492,7 @@ const App = () => {
         setError(null);
         if (!isBackground) {
             setChatHistory(prev => [...prev, { human: msg, assistant: '' }]);
-            setUserMessage(''); // Clear the textbox immediately after sending
+            setUserMessage('');
         }
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/bedrock`, {
@@ -553,55 +546,52 @@ const App = () => {
             if (!isBackground) {
                 setChatHistory(prev => prev.slice(0, -1));
             }
-            console.error('Error sending message:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const RecommendationsTable = () => {
-        return (
-            <div className="recommendations-table">
-                <h2>Recommendations</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Film Title</th>
-                            <th>Release Date</th>
-                            <th>Popularity</th>
-                            <th>Average Vote</th>
-                            <th>Description</th>
-                            <th>Director</th>
-                            <th>Language</th>
-                            <th>Studio</th>
-                            <th>Poster</th>
+    const RecommendationsTable = () => (
+        <div className="recommendations-table">
+            <h2>Recommendations</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Film Title</th>
+                        <th>Release Date</th>
+                        <th>Popularity</th>
+                        <th>Average Vote</th>
+                        <th>Description</th>
+                        <th>Director</th>
+                        <th>Language</th>
+                        <th>Studio</th>
+                        <th>Poster</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {recommendations.map((film, index) => (
+                        <tr key={index}>
+                            <td>{film.title}</td>
+                            <td>{film.release_date}</td>
+                            <td>{film.popularity}</td>
+                            <td>{film.vote_average}</td>
+                            <td>{film.overview}</td>
+                            <td>{film.director}</td>
+                            <td>{film.language}</td>
+                            <td>{film.studio}</td>
+                            <td>
+                                {film.poster ? (
+                                    <img src={film.poster} alt={`${film.title} poster`} />
+                                ) : (
+                                    <div>No Poster Available</div>
+                                )}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {recommendations.map((film, index) => (
-                            <tr key={index}>
-                                <td>{film.title}</td>
-                                <td>{film.release_date}</td>
-                                <td>{film.popularity}</td>
-                                <td>{film.vote_average}</td>
-                                <td>{film.overview}</td>
-                                <td>{film.director}</td>
-                                <td>{film.language}</td>
-                                <td>{film.studio}</td>
-                                <td>
-                                    {film.poster ? (
-                                        <img src={film.poster} alt={`${film.title} poster`} />
-                                    ) : (
-                                        <div>No Poster Available</div>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        );
-    };
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
 
     const ChatGroup = () => {
         React.useEffect(() => {
@@ -624,10 +614,12 @@ const App = () => {
                     return (
                         <React.Fragment key={index}>
                             <div className="chat-bubble user-bubble">
+                                <span className="bubble-avatar" role="img" aria-label="User">🙂</span>
                                 <span className="bubble-label">You</span>
                                 <span className="bubble-text">{renderText(turn.human)}</span>
                             </div>
                             <div className="chat-bubble ai-bubble">
+                                <span className="bubble-avatar" role="img" aria-label="AI">🤖</span>
                                 <span className="bubble-label">Claude</span>
                                 <span className="bubble-text">{renderText(turn.assistant)}</span>
                             </div>
@@ -636,6 +628,7 @@ const App = () => {
                 })}
                 {loading && (
                     <div className="chat-bubble ai-bubble typing-indicator">
+                        <span className="bubble-avatar" role="img" aria-label="AI">🤖</span>
                         <span className="bubble-label">Claude</span>
                         <span className="bubble-text">Typing...</span>
                     </div>
@@ -643,6 +636,35 @@ const App = () => {
             </div>
         );
     };
+
+    const FilmCard = ({ film, onRemove }) => (
+        <div className="film-card">
+            <div className="film-card-poster">
+                {film.poster ? (
+                    <img src={film.poster} alt={`${film.title} poster`} />
+                ) : (
+                    <div className="no-poster">No Poster Available</div>
+                )}
+            </div>
+            <div className="film-card-content">
+                <div className="film-card-title-row">
+                    <a href={`https://www.themoviedb.org/movie/${film.id}`} target="_blank" rel="noopener noreferrer" className="film-card-title">{film.title}</a>
+                    <button className="film-card-remove" onClick={() => onRemove(film.id)} title="Remove">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="red" width="20" height="20"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
+                    </button>
+                </div>
+                <div className="film-card-meta">
+                    <span>{film.release_date}</span>
+                    <span className="film-card-vote" style={{ backgroundColor: getVoteColor(film.vote_average), color: 'black' }}>{film.vote_average}</span>
+                </div>
+                <div className="film-card-details">
+                    <span>Director: {film.director}</span>
+                    <span>Studio: {film.studio}</span>
+                </div>
+                <div className="film-card-overview">{film.overview}</div>
+            </div>
+        </div>
+    );
 
     useEffect(() => {
         if (lastAddedFilmId !== null) {
@@ -656,9 +678,12 @@ const App = () => {
     }
 
     return (
-        <><div className="container">
-            <div className="header-container">
-                <img src={popcornpalLogo} alt="PopcornPal Logo" style={{ height: '48px', marginRight: '1rem' }} />
+        <>
+            {toast && <div className="toast">{toast}</div>}
+            <header className="header-container">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <img src={popcornpalLogo} alt="PopcornPal Logo" style={{ height: '72px' }} />
+                </div>
                 <div className="header-controls">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <label htmlFor="country-select" style={{ fontWeight: 500 }}>Country:</label>
@@ -674,271 +699,202 @@ const App = () => {
                                 </option>
                             ))}
                         </select>
+                        <button className="theme-toggle" onClick={toggleTheme}>
+                            {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+                        </button>
                     </div>
-                    <button className="theme-toggle" onClick={toggleTheme}>
-                        {theme === 'light' ? '🌙' : '☀️'} {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
-                    </button>
                     {auth.isAuthenticated ? (
                         <div className="user-info">
-                            <pre> Hello: {auth.user?.profile.email} </pre>
+                            <span>Hello: {auth.user?.profile.email}</span>
                             <button className="auth-button" onClick={() => auth.removeUser()}>Sign out</button>
                         </div>
                     ) : (
                         <button className="auth-button" onClick={() => auth.signinRedirect()}>Sign in</button>
                     )}
                 </div>
-            </div>
-            {auth.error && <div>Encountering error... {auth.error.message}</div>}
-
-            <div className="trending-films">
-                <div className="trending-films-header">
-                    <h2>search for a film</h2>
-                    <div className="filter-container">
-                        <input
-                            className="input"
-                            placeholder="Enter a film name"
-                            value={film}
-                            onChange={(e) => setFilm(e.target.value)} />
+            </header>
+            <div className="container">
+                <div className="trending-films">
+                    <div className="trending-films-header">
+                        <h2>search for a film</h2>
+                        <div className="filter-container">
+                            <input
+                                className="input"
+                                placeholder="Enter a film name"
+                                value={film}
+                                onChange={(e) => setFilm(e.target.value)} />
+                        </div>
                     </div>
+                    {film.trim() && searchResults.length > 0 && (
+                        <ul className="recommendations">
+                            {searchResults.map((item, index) => {
+                                const releaseYear = item.release_date ? item.release_date.substring(0, 4) : "N/A";
+                                return (
+                                    <li key={item.id} onClick={() => getFilmDetails(item.id)}>
+                                        {item.title} [{releaseYear}]
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
                 </div>
-                {film.trim() && searchResults.length > 0 && (
+
+                {trendingFilms.length > 0 && (
+                    <div className="trending-films">
+                        <div className="trending-films-header">
+                            <h2>
+                                {`or choose a trending film ${selectedGenre
+                                    ? `in ${genres.find((g) => g.id === selectedGenre)?.name}`
+                                    : "across all genres"} ${selectedYear
+                                        ? `released in ${selectedYear}`
+                                        : "across all years"}`}
+                            </h2>
+                            <div className="filter-container">
+                                <select
+                                    value={selectedGenre ?? ""}
+                                    onChange={(e) => setSelectedGenre(
+                                        e.target.value === ""
+                                            ? null
+                                            : parseInt(e.target.value)
+                                    )}
+                                >
+                                    <option value="">All Genres</option>
+                                    {genres.map((genre) => (
+                                        <option key={genre.id} value={genre.id}>
+                                            {genre.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    value={selectedYear ?? ""}
+                                    onChange={(e) => setSelectedYear(
+                                        e.target.value === ""
+                                            ? null
+                                            : parseInt(e.target.value)
+                                    )}
+                                >
+                                    <option value="">All Years</option>
+                                    {Array.from(
+                                        { length: currentYear - 1900 + 1 },
+                                        (_, i) => currentYear - i
+                                    ).map((year) => (
+                                        <option key={year} value={year}>
+                                            {year}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="trending-films-posters">
+                            {trendingFilms.map((item) => (
+                                <div key={item.id} className="trending-film-item">
+                                    {item.poster_path ? (
+                                        <img
+                                            src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
+                                            alt={item.title}
+                                            onClick={() => getFilmDetails(item.id)} />
+                                    ) : (
+                                        <div className="no-poster" onClick={() => getFilmDetails(item.id)}>
+                                            No Poster Available
+                                        </div>
+                                    )}
+                                    <div className="trending-film-info">
+                                        <span>{item.title}</span>
+                                        <span>{item.release_date ? item.release_date.substring(0, 4) : 'N/A'}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div className="trending-films">
+                    <div className="trending-films-header">
+                        <h2>or fetch films from your letterboxd feed</h2>
+                        <div className="filter-container">
+                            <input
+                                type="text"
+                                placeholder="enter public letterboxd username"
+                                value={customApiUsername}
+                                onChange={(e) => setCustomApiUsername(e.target.value)} />
+                            <button onClick={handleFetchCustomApiFilms} disabled={customApiLoading}>
+                                {customApiLoading ? "Loading..." : "Fetch Films"}
+                            </button>
+                            <button onClick={() => setCustomApiFilms([])} disabled={customApiLoading || customApiFilms.length === 0}>
+                                Clear
+                            </button>
+                        </div>
+                        {customApiError && <p className="error">{customApiError}</p>}
+                    </div>
                     <ul className="recommendations">
-                        {searchResults.map((item, index) => {
-                            const releaseYear = item.release_date ? item.release_date.substring(0, 4) : "N/A";
+                        {customApiFilms.map((film, index) => {
+                            const releaseYear = film.details?.release_date ? film.details.release_date.substring(0, 4) : "N/A";
                             return (
-                                <li key={item.id} onClick={() => getFilmDetails(item.id)}>
-                                    {item.title} [{releaseYear}]
+                                <li key={index} onClick={() => film.available && addFilmFromCustomApi(film.details)}>
+                                    {film.title} [{releaseYear}] {film.available ? "" : "Cannot Find on TMDB"}
                                 </li>
                             );
                         })}
                     </ul>
-                )}
-            </div>
-
-            {trendingFilms.length > 0 && (
-                <div className="trending-films">
-
-                    <div className="trending-films-header">
-                        <h2>
-                            {`or choose a trending film ${selectedGenre
-                                    ? `in ${genres.find((g) => g.id === selectedGenre)?.name}`
-                                    : "across all genres"} ${selectedYear
-                                    ? `released in ${selectedYear}`
-                                    : "across all years"}`}
-                        </h2>
-                        <div className="filter-container">
-                            <select
-                                value={selectedGenre ?? ""}
-                                onChange={(e) => setSelectedGenre(
-                                    e.target.value === ""
-                                        ? null
-                                        : parseInt(e.target.value)
-                                )}
-                            >
-                                <option value="">All Genres</option>
-                                {genres.map((genre) => (
-                                    <option key={genre.id} value={genre.id}>
-                                        {genre.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                value={selectedYear ?? ""}
-                                onChange={(e) => setSelectedYear(
-                                    e.target.value === ""
-                                        ? null
-                                        : parseInt(e.target.value)
-                                )}
-                            >
-                                <option value="">All Years</option>
-                                {Array.from(
-                                    { length: currentYear - 1900 + 1 },
-                                    (_, i) => currentYear - i
-                                ).map((year) => (
-                                    <option key={year} value={year}>
-                                        {year}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="trending-films-posters">
-                        {trendingFilms.map((item) => (
-                            <div key={item.id} className="trending-film-item">
-                                {item.poster_path ? (
-                                    <img
-                                        src={`https://image.tmdb.org/t/p/w200${item.poster_path}`}
-                                        alt={item.title}
-                                        onClick={() => getFilmDetails(item.id)} />
-                                ) : (
-                                    <div className="no-poster" onClick={() => getFilmDetails(item.id)}>
-                                        No Poster Available
-                                    </div>
-                                )}{item.poster_path}
-                                <div className="trending-film-info">
-                                    <span>{item.title}</span>
-                                    <span>{item.release_date ? item.release_date.substring(0, 4) : 'N/A'}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
-            )}
 
-            <div className="trending-films">
-                <div className="trending-films-header">
-                    <h2>or fetch films from your letterboxd feed</h2>
-                    <div className="filter-container">
-                        <input
-                            type="text"
-                            placeholder="enter public letterboxd username"
-                            value={customApiUsername}
-                            onChange={(e) => setCustomApiUsername(e.target.value)} />
-                        <button onClick={handleFetchCustomApiFilms} disabled={customApiLoading}>
-                            {customApiLoading ? "Loading..." : "Fetch Films"}
-                        </button>
-                        <button onClick={() => setCustomApiFilms([])} disabled={customApiLoading || customApiFilms.length === 0}>
-                            Clear
-                        </button>
-                    </div>
-                    {customApiError && <p className="error">{customApiError}</p>}
-                </div>
-                <ul className="recommendations">
-                    {customApiFilms.map((film, index) => {
-                        const releaseYear = film.details?.release_date ? film.details.release_date.substring(0, 4) : "N/A";
-                        return (
-                            <li key={index} onClick={() => film.available && addFilmFromCustomApi(film.details)}>
-                                {film.title} [{releaseYear}] {film.available ? "" : "Cannot Find on TMDB"}
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
-
-            <h2>your film list</h2>
-            {error && <div className="error">{error}</div>}
-            <div className="table-container">
+                <h2>your film list</h2>
+                {error && <div className="error">{error}</div>}
                 <div className="film-list-actions">
                     <button onClick={saveFilmListToDynamoDB}>Save Film List</button>
                     <button onClick={loadFilmListFromDynamoDB}>Load Film List</button>
                 </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th onClick={() => requestSort('title')}>Film Title</th>
-                            <th onClick={() => requestSort('release_date')}>Release Date</th>
-                            <th onClick={() => requestSort('popularity')} className="popularity">Popularity</th>
-                            <th onClick={() => requestSort('vote_average')}>Average Vote</th>
-                            <th onClick={() => requestSort('overview')} className="description">Description</th>
-                            <th onClick={() => requestSort('director')} className="director">Director</th>
-                            <th onClick={() => requestSort('language')} className="language">Language</th>
-                            <th onClick={() => requestSort('studio')} className="studio">Studio</th>
-                            <th>From Letterboxd</th>
-                            <th>Poster</th>
-                            <th>Remove</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sortedFilms().map((item, index) => (
-                            <tr key={index} className={`listItem${item.id === lastAddedFilmId ? ' highlight-row' : ''}`} ref={el => {
-                                if (item.id === lastAddedFilmId && el) {
-                                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }
-                            }}>
-                                <td>
-                                    <a href={`https://www.themoviedb.org/movie/${item.id}`} target="_blank" rel="noopener noreferrer">{item.title}</a>
-                                </td>
-                                <td>{item.release_date}</td>
-                                <td className="popularity">{item.popularity}</td>
-                                <td style={{ backgroundColor: getVoteColor(item.vote_average), color: "black" }}>
-                                    {item.vote_average}
-                                </td>
-                                <td className="description">{item.overview}</td>
-                                <td className="director">{item.director}</td>
-                                <td className="language">{item.language}</td>
-                                <td className="studio">{item.studio}</td>
-                                <td>{item.fromLetterboxd}</td>
-                                <td>
-                                    {item.poster ? (
-                                        <img
-                                            src={item.poster}
-                                            alt={`${item.title} poster`} />
-                                    ) : (
-                                        <div className="no-poster">No Poster Available</div>
-                                    )}
-                                </td>
-                                <td>
-                                    <button
-                                        onClick={() => removeFilm(item.id)}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            padding: 0,
-                                        }}
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            fill="red"
-                                            width="24px"
-                                            height="24px"
-                                        >
-                                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-            </div>
-            {auth.isAuthenticated ? (
-                <div className="chat-container">
-                    <ChatGroup />
-                    <div className="chat-input">
-                        <input
-                            type="text"
-                            value={userMessage}
-                            onChange={(e) => setUserMessage(e.target.value)}
-                            placeholder="Type your message here..."
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSendMessage(userMessage);
-                            }}
-                        />
-                        <button onClick={() => handleSendMessage(userMessage)} disabled={loading}>Send</button>
+                <div className="film-list-grid">
+                    {sortedFilms().map((item, index) => (
+                        <FilmCard key={item.id} film={item} onRemove={removeFilm} />
+                    ))}
+                </div>
+                {auth.isAuthenticated ? (
+                    <div className="chat-container">
+                        <ChatGroup />
+                        <div className="chat-input">
+                            <input
+                                type="text"
+                                value={userMessage}
+                                onChange={(e) => setUserMessage(e.target.value)}
+                                placeholder="Type your message here..."
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSendMessage(userMessage);
+                                }}
+                            />
+                            <button onClick={() => handleSendMessage(userMessage)} disabled={loading}>Send</button>
+                        </div>
+                        {recommendations.length > 0 && <RecommendationsTable />}
                     </div>
-                    {recommendations.length > 0 && <RecommendationsTable />}
+                ) : (
+                    <div className="chat-container">
+                        <p>Please sign in to use the AI chatbot and get personalized recommendations.</p>
+                    </div>
+                )}
+            </div>
+            <footer className="app-footer">
+                <div className="about-section">
+                    <h3>About</h3>
+                    <p>
+                        This project is a personal development exercise aimed at improving my React and web development skills.
+                        It utilizes the TMDB API and Claude (Anthropic) for film data and AI-powered recommendations.
+                    </p>
+                    <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+                    <p>This product uses Claude by Anthropic for AI chat and recommendations, but is not endorsed or certified by Anthropic.</p>
                 </div>
-            ) : (
-                <div className="chat-container">
-                    <p>Please sign in to use the AI chatbot and get personalized recommendations.</p>
+                <div className="tmdb-attribution">
+                    <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
+                        <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="TMDB Logo" className="tmdb-logo" />
+                    </a>
                 </div>
-            )}
-        </div><footer className="app-footer">
-            <div className="about-section">
-                <h3>About</h3>
-                <p>
-                    This project is a personal development exercise aimed at improving my React and web development skills.
-                    It utilizes the TMDB API and Claude (Anthropic) for film data and AI-powered recommendations.
-                </p>
-                <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
-                <p>This product uses Claude by Anthropic for AI chat and recommendations, but is not endorsed or certified by Anthropic.</p>
-            </div>
-            <div className="tmdb-attribution">
-                <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
-                    <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg" alt="TMDB Logo" className="tmdb-logo" />
-                </a>
-            </div>
-            <div className="claude-attribution">
-                <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg" alt="Claude by Anthropic Logo" className="claude-logo" style={{height: '32px', marginTop: '8px'}} />
-                </a>
-            </div>
-        </footer></>
+                <div className="claude-attribution">
+                    <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg" alt="Claude by Anthropic Logo" className="claude-logo" style={{ height: '32px', marginTop: '8px' }} />
+                    </a>
+                </div>
+            </footer>
+        </>
     );
 };
 

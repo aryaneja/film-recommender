@@ -102,6 +102,9 @@ body {
 }
 
 .header-container {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -110,6 +113,33 @@ body {
   background-color: var(--background-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  .header-logo {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+  }
+  .header-controls {
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
 }
 
 .header {
@@ -219,11 +249,12 @@ h2 {
     background-color: #007bff; /* Ensure the background color remains the same on hover */
 }
 
+/* Trending films grid and card styles - match userFilmList cards */
 .trending-films-posters {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  padding: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  padding: 0.5rem 0;
   width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -247,47 +278,68 @@ h2 {
 }
 
 .trending-film-item {
-  width: 100%;
-  border-radius: var(--radius-md);
+  background: var(--background-light);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-  background-color: var(--background-light);
-  position: relative;
   display: flex;
   flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
+  min-height: 100px;
 }
 
 .trending-film-item:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  transform: translateY(-4px) scale(1.02);
 }
 
-.trending-film-item img {
+.trending-film-item img,
+.trending-film-item .no-poster {
   width: 100%;
   aspect-ratio: 2/3;
+  height: 120px;
   object-fit: contain;
-  cursor: pointer;
-  display: block;
-  background-color: var(--background-light);
+  background: var(--background-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 0 0 0;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .trending-film-info {
   padding: 0.5rem;
-  background-color: var(--background-light);
-  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .trending-film-info span {
-  display: block;
-  color: var(--text-container);
-  font-size: 0.9rem;
-  /*overflow: hidden;
-  text-overflow: ellipsis;*/
-  white-space: wrap;
-  line-height: 1;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  line-height: 1.2;
+  word-break: break-word;
 }
 
+@media (max-width: 600px) {
+  .trending-films-posters {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+  }
+  .trending-film-item img,
+  .trending-film-item .no-poster {
+    height: 80px;
+  }
+  .trending-film-info {
+    padding: 0.3rem;
+  }
+  .trending-film-info span {
+    font-size: 0.7rem;
+  }
+}
 .trending-film-info span:last-child {
   color: var(--text-secondary);
   font-size: 0.8rem;
@@ -504,16 +556,11 @@ td[style*="backgroundColor"] {
     padding: 0.3rem;
   }
   
-  .trending-film-info {
-    padding: 0.25rem;
+  .trending-film-item .trending-film-info span:first-child {
+    color: #fff !important;
   }
-  
-  .trending-film-info span {
-    font-size: 0.8rem;
-  }
-  
-  .trending-film-info span:last-child {
-    font-size: 0.7rem;
+  .trending-film-item .trending-film-info span:last-child {
+    color: #e0e0e0 !important;
   }
 
   /* Further reduce columns */
@@ -764,5 +811,201 @@ button:hover {
   .chat-container {
     max-width: 100%;
     padding: 1rem 0.3rem;
+  }
+}
+
+/* Film list grid and film card styles */
+.film-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* 50% smaller min width */
+  gap: 0.75rem; /* smaller gap */
+  margin: 1rem 0;
+  width: 100%;
+}
+
+.film-card {
+  background: var(--background-light);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
+  min-height: 100px; /* smaller min height */
+}
+
+.film-card-poster {
+  width: 100%;
+  background: var(--background-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  aspect-ratio: 2/3;
+  height: 120px; /* smaller poster height */
+}
+
+.film-card-poster img {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0 0 0 0;
+}
+
+.film-card-content {
+  padding: 0.5rem; /* smaller padding */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.film-card-title {
+  font-size: 0.8rem;
+}
+
+.film-card-meta,
+.film-card-details {
+  font-size: 0.7rem;
+  gap: 0.3rem;
+}
+
+.film-card-vote {
+  font-size: 0.8rem;
+  padding: 0.1rem 0.4rem;
+}
+
+.film-card-overview {
+  font-size: 0.75rem;
+  -webkit-line-clamp: 2;
+}
+
+
+.film-card-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.3rem;
+  display: flex;
+  align-items: center;
+  width: 18px;
+  height: 18px;
+}
+
+.film-card-remove svg {
+  width: 14px;
+  height: 14px;
+  fill: red;
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .film-list-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .film-card-poster {
+    height: 80px;
+  }
+  .film-card-content {
+    padding: 0.3rem;
+  }
+}
+
+.trending-film-item .trending-film-info span:first-child {
+  color: #fff !important;
+}
+.trending-film-item .trending-film-info span:last-child {
+  color: #e0e0e0 !important;
+}
+
+/* Chat bubble avatars */
+.chat-bubble {
+  position: relative;
+  padding-left: 2.2rem;
+}
+
+.user-bubble::before,
+.ai-bubble::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 0.7rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+}
+
+.user-bubble::before {
+  background-image: url('/user-avatar.png'); /* Replace with your user avatar path */
+  background-color: #2563eb;
+  border: 2px solid #fff;
+}
+
+.ai-bubble::before {
+  background-image: url('/ai-avatar.png'); /* Replace with your AI avatar path */
+  background-color: #f1f5f9;
+  border: 2px solid #2563eb;
+}
+
+/* Animate new chat bubbles */
+@keyframes chat-fade-in {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.chat-bubble {
+  animation: chat-fade-in 0.4s;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .chat-bubble {
+    padding-left: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .bubble-avatar {
+    font-size: 1.1rem;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+
+  button:active {
+    transform: scale(0.96);
+    transition: transform 0.08s;
+  }
+
+  .film-card:hover,
+  .trending-film-item:hover {
+    box-shadow: 0 8px 32px rgba(37, 99, 235, 0.18);
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  input:focus,
+  select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #2563eb33;
+    border-color: #2563eb;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2563eb;
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border-radius: 1.2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    font-size: 1rem;
+    z-index: 2000;
+    animation: chat-fade-in 0.4s;
   }
 }
