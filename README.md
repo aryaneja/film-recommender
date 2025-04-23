@@ -4,6 +4,11 @@
   <img src="frontend/src/assets/popcornpal-logo.png" alt="PopcornPal Logo" height="100" />
 </p>
 
+
+<p align="center">
+  <img src="frontend/src/assets/popcorn pal diagram.png" alt="PopcornPal Logo" width="120%" />
+</p>
+
 Welcome to PopcornPal, a comprehensive web application designed to help you discover and manage your favorite films. This app leverages the power of AI, user authentication, and the extensive TMDB (The Movie Database) API to create a personalized movie-watching experience.
 
 ## Table of Contents
