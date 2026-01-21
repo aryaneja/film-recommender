@@ -6,7 +6,7 @@ export function Header({ auth }) {
     return (
         <header className="header-container">
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <a href="film.aryaneja.com">
+                <a href="https://film.aryaneja.com">
                     <img src={popcornpalLogo} alt="PopcornPal Logo" style={{ height: '90px' }} />
                 </a>
             </div>

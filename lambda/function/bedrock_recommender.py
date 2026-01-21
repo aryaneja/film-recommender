@@ -5,7 +5,7 @@ import hashlib
 
 bedrock_runtime = boto3.client(service_name='bedrock-runtime')
 
-MODEL_ID = 'anthropic.claude-3-sonnet-20240229-v1:0'
+MODEL_ID = 'anthropic.claude-3-5-sonnet-20241022-v2:0'
 
 def lambda_handler(event, context):
     # Fallback-safe user ID (if no Cognito)
